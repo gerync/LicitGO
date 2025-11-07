@@ -98,6 +98,34 @@ CREATE TABLE IF NOT EXISTS password_resets (
     used BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ); */
+CREATE TABLE IF NOT EXISTS wishlist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    car_id INT NOT NULL,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, car_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (car_id) REFERENCES cars(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS authentication (
+    DELIMITER $$
+
+    CREATE TRIGGER before_insert_authentication
+    BEFORE INSERT ON authentication
+    FOR EACH ROW
+    BEGIN
+    -- Sets the expires_at column value to 10 minutes after the current time (NOW())
+    SET NEW.expires_at = NOW() + INTERVAL 10 MINUTE;
+    END$$
+
+    DELIMITER ;
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    auth_token VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 CREATE TABLE IF NOT EXISTS user_settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL UNIQUE,
@@ -106,3 +134,7 @@ CREATE TABLE IF NOT EXISTS user_settings (
     currency ENUM('EUR', 'HUF', 'USD') DEFAULT 'EUR' NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+
+INSERT INTO users (usertag, display_name, password_hash, email, fullname, mobile, type) VALUES
+('superadmin', 'Super Omega chongus admin',  /* PASSWORD PLACEHOLDER */, /* EMAIL PLACEHOLDER */, /* FULL NAME PLACEHOLDER */, /* MOBILE PLACEHOLDER */, 'superadmin');
