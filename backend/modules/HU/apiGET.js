@@ -1,3 +1,5 @@
+import { CheckAPIKey, CheckSessionToken } from '../Checkings.js';
+
 async function GetloginHU(req, res) {
   const { usertag, email, password_hash } = req.query;
   const conn = await app.db.getConnection();
@@ -207,3 +209,4 @@ async function GetauctionsByIdHU(req, res) {
     return res.status(500).json({ error: 'Belső szerverhiba' });
   }
 }
+module.exports = { GetloginHU, GetauctionsHU, GetauctionsByIdHU }

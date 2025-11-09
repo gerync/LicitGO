@@ -126,16 +126,6 @@ CREATE TABLE IF NOT EXISTS global_settings (
     max_auction_duration_days INT DEFAULT 30,
     min_starting_price DECIMAL(10, 2) DEFAULT 100.00
 );
-CREATE TABLE IF NOT EXISTS logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    action_type ENUM('login', 'logout', 'bid_placed', 'auction_created', 'auction_cancelled',
-    'user_registered', 'password_reset', 'message_sent', 'admin_action', 'super_admin_action',
-    'global_settings_updated') NOT NULL,
-    action_details TEXT,
-    action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-);
 
 CREATE TABLE IF NOT EXISTS sessions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -144,6 +134,17 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at DATETIME NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    session_token VARCHAR(255),
+    action_type ENUM('login', 'logout', 'bid_placed', 'auction_created', 'auction_cancelled',
+    'user_registered', 'password_reset', 'message_sent', 'admin_action', 'super_admin_action',
+    'global_settings_updated') NOT NULL,
+    action_details TEXT,
+    action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (session_token) REFERENCES sessions(session_token) ON DELETE SET NULL
 );
 CREATE TABLE IF NOT EXISTS authentication (
     user_id INT PRIMARY KEY,
