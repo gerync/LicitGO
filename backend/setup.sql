@@ -19,6 +19,11 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT EM CHECK (LOWER(email) = email COLLATE utf8_hungarian_ci),
     CONSTRAINT UT CHECK (LOWER(usertag) = usertag COLLATE utf8_hungarian_ci)
 );
+CREATE TABLE IF NOT EXISTS profile_pictures (
+    user_id INT NOT NULL UNIQUE PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 CREATE TABLE IF NOT EXISTS cars (
     id INT AUTO_INCREMENT PRIMARY KEY,
     manufacturer VARCHAR(100) NOT NULL,
@@ -44,7 +49,14 @@ CREATE TABLE IF NOT EXISTS cars (
     factoryExtras TEXT,
     owner_id INT,
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
-    
+);
+CREATE TABLE IF NOT EXISTS api_keys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    api_key VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME DEFAULT DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 90 DAY),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS auctions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -114,16 +126,6 @@ CREATE TABLE IF NOT EXISTS global_settings (
     max_auction_duration_days INT DEFAULT 30,
     min_starting_price DECIMAL(10, 2) DEFAULT 100.00
 );
-CREATE TABLE IF NOT EXISTS logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    action_type ENUM('login', 'logout', 'bid_placed', 'auction_created', 'auction_cancelled',
-    'user_registered', 'password_reset', 'message_sent', 'admin_action', 'super_admin_action',
-    'global_settings_updated') NOT NULL,
-    action_details TEXT,
-    action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-);
 
 CREATE TABLE IF NOT EXISTS sessions (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -132,6 +134,17 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at DATETIME NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    session_token VARCHAR(255),
+    action_type ENUM('login', 'logout', 'bid_placed', 'auction_created', 'auction_cancelled',
+    'user_registered', 'password_reset', 'message_sent', 'admin_action', 'super_admin_action',
+    'global_settings_updated') NOT NULL,
+    action_details TEXT,
+    action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (session_token) REFERENCES sessions(session_token) ON DELETE SET NULL
 );
 CREATE TABLE IF NOT EXISTS authentication (
     user_id INT PRIMARY KEY,
@@ -147,3 +160,5 @@ CREATE TABLE IF NOT EXISTS backup_keys (
 );
 INSERT INTO users (usertag, display_name, password_hash, email, fullname, mobile, type)
 VALUES ( /* placeholder for user data */, 'superadmin');
+INSERT INTO api_keys (user_id, api_key)
+VALUES (1, /* placeholder for API key */);
