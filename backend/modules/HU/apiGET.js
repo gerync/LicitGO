@@ -1,4 +1,5 @@
 import { CheckAPIKey, CheckSessionToken } from '../Checkings.js';
+import { hash } from 'argon2';
 
 async function GetloginHU(req, res) {
   const { usertag, email, password_hash } = req.query;
@@ -31,7 +32,7 @@ async function GetloginHU(req, res) {
     try {
       const [rows] = await app.db.query(
         'SELECT id, usertag, display_name, email FROM users WHERE (usertag = ? OR email = ?) AND password_hash = ?',
-        [usertag, email, password_hash]
+        [usertag, email, await hash(password_hash)]
       );
       conn.release();
       if (rows.length === 0) {
@@ -46,8 +47,20 @@ async function GetloginHU(req, res) {
   }
 }
 async function GetauctionsHU(req, res) {
+  conn = await app.db.getConnection();
+  if (!(await CheckAPIKey(req.headers['x-api-key']))) {
+    if (!await CheckSessionToken(req.headers['x-session-token'])) {
+      conn.release();
+      return res.status(401).json({ error: 'Érvénytelen API kulcs vagy munkamenet token' });
+    }
+    main();
+
+  }
+  else {
+      main();
+  }
+  async function main() {
   const query = req.query;
-  const conn = await app.db.getConnection();
   try {
     const allowed = new Set([
       'status',
@@ -182,6 +195,8 @@ async function GetauctionsHU(req, res) {
     return res.status(500).json({ error: 'Belső szerverhiba' });
   }
 }
+}
+
 async function GetauctionsByIdHU(req, res) {
   const conn = await app.db.getConnection();
   const auctionId = req.params.id;
@@ -209,4 +224,59 @@ async function GetauctionsByIdHU(req, res) {
     return res.status(500).json({ error: 'Belső szerverhiba' });
   }
 }
-module.exports = { GetloginHU, GetauctionsHU, GetauctionsByIdHU }
+
+async function GetMyProfileHU(req, res) {
+  const conn = await app.db.getConnection();
+  if (!(await CheckAPIKey(req.headers['x-api-key']))) {
+    if (!await CheckSessionToken(req.headers['x-session-token'])) {
+      conn.release();
+      return res.status(401).json({ error: 'Érvénytelen API kulcs vagy munkamenet token' });
+    }
+    main();
+
+  }
+  else {
+      main();
+  }
+  async function main() {
+    try {
+      const sessionToken = req.headers['x-session-token'];
+      const [userRows] = await app.db.query(
+        `SELECT id, usertag, display_name, email, created_at FROM users WHERE id = (
+          SELECT user_id FROM sessions WHERE session_token = ?
+        )`,
+        [sessionToken]
+      );
+      if (userRows.length === 0) {
+        conn.release();
+        return res.status(404).json({ error: 'Felhasználó nem található' });
+      }
+      const user = userRows[0];
+      try {
+        const [profilePicRows] = await app.db.query(
+          `SELECT file_path FROM profile_pictures WHERE user_id = ? ORDER BY uploaded_at DESC LIMIT 1`,
+          [user.id]
+        );
+        const profilepicture = profilePicRows.length > 0 ? profilePicRows[0].file_path : null;
+      } catch (error) {
+        console.error('Hiba tortent a profilkep lekerdezese kozben:', error);
+        const profilepicture = null;
+      }
+
+      user.profile_picture = profilepicture;
+      const [auctionRows] = await app.db.query(
+        `SELECT auctions.*, cars.* FROM auctions
+         JOIN cars ON cars.auction_id = auctions.id
+         WHERE cars.owner_id = ?`,
+        [user.id]
+      );
+      conn.release();
+      return res.status(200).json({ user: user, auctions: auctionRows, profile_picture: profilepicture });
+    } catch (error) {
+      console.error('Hiba tortent a profil lekerdezese kozben:', error);
+      conn.release();
+      return res.status(500).json({ error: 'Belső szerverhiba' });
+    }
+  }
+}
+exports = { GetloginHU, GetauctionsHU, GetauctionsByIdHU, GetMyProfileHU };

@@ -17,4 +17,9 @@ async function CheckSessionToken(sessionToken) {
         return isTokenValid;
     }
 }
-module.exports = { CheckAPIKey, CheckSessionToken };
+function CheckFileType(file) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/webp', 'image/bmp', 'image/svg'];
+    return file && allowedTypes.includes(file.mimetype);
+}
+
+exports = { CheckAPIKey, CheckSessionToken, CheckFileType };

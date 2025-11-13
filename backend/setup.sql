@@ -2,11 +2,12 @@ CREATE DATABASE IF NOT EXISTS licitgoeu
 CHARACTER SET utf8
 DEFAULT COLLATE utf8_hungarian_ci;
 USE licitgoeu;
+
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usertag VARCHAR(75) NOT NULL UNIQUE,
+    usertag VARCHAR(32) NOT NULL UNIQUE,
     display_name VARCHAR(100) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(64) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     fullname VARCHAR(150) NOT NULL,
     mobile VARCHAR(30) NOT NULL UNIQUE,
@@ -102,11 +103,12 @@ CREATE TABLE IF NOT EXISTS car_images (
     FOREIGN KEY (car_id) REFERENCES cars(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS password_resets (
+CREATE TABLE IF NOT EXISTS email_codes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    reset_token VARCHAR(255) NOT NULL UNIQUE,
+    code VARCHAR(10) NOT NULL,
     expires_at DATETIME NOT NULL,
+    type ENUM('verification', 'password_reset') NOT NULL,
     used BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -137,10 +139,11 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 CREATE TABLE IF NOT EXISTS logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
     session_token VARCHAR(255),
     action_type ENUM('login', 'logout', 'bid_placed', 'auction_created', 'auction_cancelled',
-    'user_registered', 'password_reset', 'message_sent', 'admin_action', 'super_admin_action',
-    'global_settings_updated') NOT NULL,
+    'car_added', 'car_updated', 'user_registered', 'password_reset', 'message_sent', 'admin_action',
+    'super_admin_action', 'global_settings_updated') NOT NULL,
     action_details TEXT,
     action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
@@ -157,6 +160,13 @@ CREATE TABLE IF NOT EXISTS backup_keys (
     user_id INT NOT NULL,
     backup_key TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS exchange_rates (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        base_currency VARCHAR(8),
+        target_currency VARCHAR(8),
+        rate DECIMAL(18,8),
+        fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 INSERT INTO users (usertag, display_name, password_hash, email, fullname, mobile, type)
 VALUES ( /* placeholder for user data */, 'superadmin');

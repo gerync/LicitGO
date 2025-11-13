@@ -1,13 +1,15 @@
-import dotenv from '../node_modules/dotenv/config.js';
-async function Exchanges(from, to, amount) {
-    const res = await fetch(`https://v6.exchangerate-api.com/v6/${dotenv.EXCHANGE_RATE_API_KEY}/latest/${from}`);
-    const data = await res.json();
-    for (let i = 0; i < data.conversion_rates.length; i++) {
-        if (data.conversion_rates[i] === to) {
-            const rate = data.conversion_rates[i];
-            return amount * rate;
-        }
+import dotenv from 'dotenv';
+dotenv.config({path: '../.env'});
+
+async function Exchanges(from, to) {
+  const res = await fetch(`https://v6.exchangerate-api.com/v6/${process.env.EXCHANGE_RATE_API_KEY}/latest/${from}`);
+  const data = await res.json();
+    if (data.result === 'success' && data.conversion_rates && data.conversion_rates[to]) {
+        return data.conversion_rates[to];
     }
-    return null;
+    else {
+        console.error('Hiba az árfolyam lekérésekor:', data);
+    }
 }
+
 export { Exchanges };
