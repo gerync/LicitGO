@@ -6,9 +6,14 @@ import RegisterRouter from './route/Register.js';
 import RegisterMiddleware from './middleware/RegisterHandle.js';
 import handleStatus from './lang/HandleStatus.js';
 import Config from './conf/configure.js';
+import LoginRouter from './route/auth/Login.js';
+import addAdmin from './route/admin/add.js';
+import AuthMiddleware from './middleware/AuthHandle.js';
+import AddAdminMiddleware from './middleware/AddAdminHandle.js';
+import Logout from './route/auth/Logout.js';
 
 const app = express();
-const PORT = process.env.PORT || 3030;
+const PORT = Config().port || 3030;
 
 app.use(cors());
 app.use(express.json());
@@ -18,10 +23,13 @@ app.use(cookieParser(Config().cookieSecret));
 
 app.use('/register', RegisterMiddleware, RegisterRouter);
 
+app.use('/login', LoginRouter);
+
+app.use('/logout', Logout);
 
 
-
-
+const SuperAdminMiddleware = AuthMiddleware().SuperAdminPermissionMiddleware;
+app.use('/addadmin', [ AuthMiddleware(), SuperAdminMiddleware, AddAdminMiddleware ] , addAdmin);
 
 
 

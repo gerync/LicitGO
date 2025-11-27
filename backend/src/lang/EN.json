@@ -40,6 +40,7 @@
     "1203": "Database conflict",
     "1204": "Too few values provided",
     "1205": "Too many values provided",
+    "1206": "Age not within valid range",
 
     "1210": "Phone number already registered",  
     "1211": "Email already registered",

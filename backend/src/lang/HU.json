@@ -40,6 +40,7 @@
     "1203": "Adatbázis ütközés",
     "1204": "Kevés érték van megadva",
     "1205": "Túl sok érték van megadva",
+    "1206": "Az életkor nincs érvényes tartományban",
 
     "1210": "Telefonszám már regisztrálva",  
     "1211": "Email már regisztrálva",
@@ -49,6 +50,8 @@
     "1221": "Érvénytelen email formátum",
     "1222": "Érvénytelen telefonszám formátum",    
     "1223": "A jelszavak nem felelnek meg a követelményeknek",
+    "1224": "A Felhasználónév nem felel meg a követelményeknek",
+    "1225": "A Teljes név nem felel meg a követelményeknek",
 
     "1230": "Hitelesítési kód lejárt",             
     "1231": "Érvénytelen hitelesítési kód",

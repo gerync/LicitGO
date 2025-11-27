@@ -3,7 +3,7 @@ import DBconnection from '../db/connection.js';
 import handleStatus from '../lang/HandleStatus.js';
 
 export default async function SessionTokenMiddleware(req, res, next) {
-    const sessionToken = req.cookies['session_token'] || req.signedCookies['session_token'];
+    const sessionToken = req.cookies['sessiontoken'] || req.signedCookies['sessiontoken'];
     let lang = req.headers['accept-language'] || 'EN';
     if (!lang.toUpperCase().includes('EN') && !lang.toUpperCase().includes('HU')) {
         lang = 'EN';
@@ -28,7 +28,7 @@ export default async function SessionTokenMiddleware(req, res, next) {
 }
 
 export async function AdminPermissionMiddleware(req, res, next) {
-    const sessionToken = req.cookies['session_token'] || req.signedCookies['session_token'];
+    const sessionToken = req.cookies['sessiontoken'] || req.signedCookies['sessiontoken'];
     let lang = req.headers['accept-language'] || 'EN';
     if (!lang.toUpperCase().includes('EN') && !lang.toUpperCase().includes('HU')) {
         lang = 'EN';
@@ -37,7 +37,7 @@ export async function AdminPermissionMiddleware(req, res, next) {
         return res.status(404).json({ message: handleStatus('1000', lang) });
     }
     const conn = await DBconnection.getConnection();
-    const sql = 'SELECT type FROM users INNER JOIN sessions ON users.id = sessions.user_id WHERE sessions.session_token = ?';
+    const sql = 'SELECT type FROM users INNER JOIN sessions ON users.id = sessions.userid WHERE sessions.token = ?';
     const results = await UseDB(sql, [sessionToken]);
     if (results.length === 0) {
         return res.status(404).json({ message: handleStatus('1100', lang) });
@@ -50,7 +50,7 @@ export async function AdminPermissionMiddleware(req, res, next) {
 }
 
 export async function SuperAdminPermissionMiddleware(req, res, next) {
-    const sessionToken = req.cookies['session_token'] || req.signedCookies['session_token'];
+    const sessionToken = req.cookies['sessiontoken'] || req.signedCookies['sessiontoken'];
     let lang = req.headers['accept-language'] || 'EN';
     if (!lang.toUpperCase().includes('EN') && !lang.toUpperCase().includes('HU')) {
         lang = 'EN';
@@ -59,7 +59,7 @@ export async function SuperAdminPermissionMiddleware(req, res, next) {
         return res.status(404).json({ message: handleStatus('1000', lang) });
     }
     const conn = await DBconnection.getConnection();
-    const sql = 'SELECT type FROM users INNER JOIN sessions ON users.id = sessions.user_id WHERE sessions.session_token = ?';
+    const sql = 'SELECT type FROM users INNER JOIN sessions ON users.id = sessions.userid WHERE sessions.token = ?';
     const results = await UseDB(sql, [sessionToken]);
     if (results.length === 0) {
         return res.status(404).json({ message: handleStatus('1100', lang) });
@@ -72,7 +72,7 @@ export async function SuperAdminPermissionMiddleware(req, res, next) {
 }
 
 export async function IsVerifiedMiddleware(req, res, next) {
-    const sessionToken = req.cookies['session_token'] || req.signedCookies['session_token'];
+    const sessionToken = req.cookies['sessiontoken'] || req.signedCookies['sessiontoken'];
     let lang = req.headers['accept-language'] || 'EN';
     if (!lang.toUpperCase().includes('EN') && !lang.toUpperCase().includes('HU')) {
         lang = 'EN';
@@ -81,7 +81,7 @@ export async function IsVerifiedMiddleware(req, res, next) {
         return res.status(401).json({ message: handleStatus('1000', lang) });
     }
     const conn = await DBconnection.getConnection();
-    const sql = 'SELECT type FROM users INNER JOIN sessions ON users.id = sessions.user_id WHERE sessions.session_token = ?';
+    const sql = 'SELECT type FROM users INNER JOIN sessions ON users.id = sessions.userid WHERE sessions.token = ?';
     const results = await UseDB(sql, [sessionToken]);
     if (results.length === 0) {
         return res.status(403).json({ message: handleStatus('1100', lang) });
