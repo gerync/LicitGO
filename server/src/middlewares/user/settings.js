@@ -4,16 +4,18 @@ import configs from "../../configs/Configs.js";
 
 // Felhasználói beállítások validálása: mennyiség, típus, értékkészlet; JWT-ből usertoken kiemelése
 export default async function userSettings(req, res, next) {
+    // #region Nyelvi beállítás sütiből, kérés test paraméterek kiemelése (language, darkmode, currency), legalább egy mező kötelező
     const lang = req.cookies.language.toUpperCase() || 'EN'
     const { language, darkmode, currency } = req.body;
     if (!language && !darkmode && !currency) {
         return res.status(400).send(lang === 'HU' ? 'Nincsenek megadva beállítások.' : 'No settings provided.');
     }
-    // Objektum mérete min-max között maradjon
+    // #endregion
+
+    // #region Mezőszám ellenőrzés (1-3 között), nem string típusok stringgé konvertálása mentett előtt
     if (ObjectLenght(req.body, 1, 3) !== 0) {
         return res.status(400).send(lang === 'HU' ? 'Érvénytelen számú beállítás.' : 'Invalid number of settings.');
     }
-    // nem string/boolean típusokat stringgé alakítunk mentés előtt
     if (language && typeof language !== 'string') {
         req.body.language = language.toString();
         language = language.toString();
@@ -26,6 +28,9 @@ export default async function userSettings(req, res, next) {
         req.body.currency = currency.toString();
         currency = currency.toString();
     }
+    // #endregion
+
+    // #region JWT dekódolás ha létezik auth süti, usertoken kiemelése az ősszekapcsolt (decoded) objektumből req.usertoken-be
     const authToken = req.cookies.auth;
     if (authToken) {
         // Token dekódolás: hibánál a vezérlés átmegy a globális hibakezelőre
@@ -34,6 +39,9 @@ export default async function userSettings(req, res, next) {
             req.usertoken = decoded.usertoken;
         }
     }
+    // #endregion
+
+    // #region Beállítások érték ellenőrzése: language (EN/HU), darkmode (true/false), currency (USD/EUR/HUF)
     if (language && ![ 'EN', 'HU' ].includes(language.toUpperCase())) {
         return res.status(400).send(lang === 'HU' ? 'Érvénytelen nyelv.' : 'Invalid language.');
     }
@@ -43,5 +51,7 @@ export default async function userSettings(req, res, next) {
     if (currency && !['USD', 'EUR', 'HUF' ].includes(currency.toUpperCase())) {
         return res.status(400).send(lang === 'HU' ? 'Érvénytelen pénznem.' : 'Invalid currency.');
     }
+    // #endregion
+
     next();
 }

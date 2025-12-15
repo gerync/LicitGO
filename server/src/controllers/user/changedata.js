@@ -2,12 +2,15 @@ import { encryptData, decryptData } from '../../utilities/Encrypt.js';
 import DB from '../../database/DB.js';
 
 export async function changeDataController(req, res) {
+    // #region Kapcsolat és adatkiemelés
     const lang = req.cookies.language.toUpperCase() || 'EN';
     const conn = await DB.pool.getConnection();
     const { usertag, fullname, mobile, gender } = req.body;
     const updates = [];
     const params = [];
-    // Felhasználónév ütközés vizsgálata módosítás előtt
+    // #endregion
+
+    // #region Felhasználónév egyediség ellenőrzés és frissítés
     if (usertag) {
         const usertagQuery = 'SELECT COUNT(*) AS count FROM users WHERE usertag = ? AND usertoken != ?';
         const usertagParams = [usertag, req.usertoken];
@@ -19,13 +22,18 @@ export async function changeDataController(req, res) {
         updates.push('usertag = ?');
         params.push(usertag);
     }
+    // #endregion
+
+    // #region Teljes név frissítése
     if (fullname) {
         const encryptedFullname = encryptData(fullname);
         updates.push('fullname = ?');
         params.push(encryptedFullname);
     }
+    // #endregion
+
+    // #region Telefonszám titkosítás és egyediség ellenőrzés
     if (mobile) {
-        // Telefonszám titkosítása és egyediségi ellenőrzése
         const encryptedMobile = encryptData(mobile);
         const mobileQuery = 'SELECT COUNT(*) AS count FROM users WHERE mobile = ? AND usertoken != ?';
         const mobileParams = [encryptedMobile, req.usertoken];
@@ -37,32 +45,40 @@ export async function changeDataController(req, res) {
         updates.push('mobile = ?');
         params.push(encryptedMobile);
     }
+    // #endregion
+
+    // #region Nem frissítése
     if (gender) {
         updates.push('gender = ?');
         params.push(gender);
     }
+    // #endregion
 
-    // Nincs módosítható mező
+    // #region Üres frissítések ellenőrzés és adatbázis művelet
     if (updates.length === 0) {
         conn.release();
         return res.status(400).send(lang === 'HU' ? 'Nincs frissítendő adat.' : 'No data to update.');
     }
 
     params.push(req.usertoken);
-    // Dinamikus UPDATE a csak módosított mezőkre
     const updateQuery = `UPDATE users SET ${updates.join(', ')} WHERE usertoken = ?`;
     const result = await DB.use(updateQuery, params);
     conn.release();
-    if (result.affectedRows === 1) {
+    // #endregion
 
+    // #region Válasz kezelése
+    if (result.affectedRows === 1) {
         return res.status(200).send(lang === 'HU' ? 'Adatok sikeresen frissítve.' : 'Data updated successfully.');
     }
     else {
         return res.status(500).send(lang === 'HU' ? 'Hiba történt az adatok frissítése során.' : 'An error occurred while updating data.');
     }
+    // #endregion
 }
 
+// Felhasználói alapadatok lekérése és érzékeny mezők maszkolása
 export async function getUserData(req, res) {
+    // #region Kapcsolat és adatok lekérése
     const lang = req.cookies.language.toUpperCase() || 'EN';
     const conn = await DB.pool.getConnection();
     const usertoken = req.usertoken;
@@ -70,6 +86,9 @@ export async function getUserData(req, res) {
     const params = [usertoken];
     const rows = await DB.use(query, params);
     conn.release();
+    // #endregion
+
+    // #region Adatok maszkolása és válasz építése
     if (rows.length === 1) {
         // Email maszkolása: csak az első és utolsó karakterek láthatók
         let email = decryptData(rows[0].email);
@@ -102,4 +121,5 @@ export async function getUserData(req, res) {
         res.clearCookie('auth');
         return res.status(404).send(lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.');
     }
+    // #endregion
 }
