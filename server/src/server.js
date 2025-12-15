@@ -4,10 +4,10 @@ import cookieParser from 'cookie-parser';
 
 import { errorHandler, LogError } from './Middlewares/general/Error.js';
 import logger from './Middlewares/Logger.js';
-import settingsRoutes from './Routes/settings.js';
-import authRoutes from './Routes/Auth.js';
-import configs from './Configs/configs.js';
 import setup from './Database/setupDB.js';
+
+import configs from './configs/Configs.js';
+import authRoutes from './routes/auth.js';
 
 const app = express();
 app.use(cors());
@@ -18,10 +18,7 @@ const PORT = configs.server.port
 
 
 app.use('/', authRoutes);
-app.use('/settings', settingsRoutes);
 
-app.use(LogError);
-app.use(errorHandler);
 app.listen(PORT, async () => {
     await setup();
     console.log(`Server started on port ${PORT}`);

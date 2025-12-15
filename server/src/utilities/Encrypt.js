@@ -5,6 +5,7 @@ const encryptionkey = configs.encryption.secretKey;
 const algorithm = configs.encryption.algorithm;
 const keyEncoding = configs.encryption.keyEncoding;
 
+// Adatok titkosítása IV-vel, hogy azonos bemenet is eltérő kimenetet adjon
 export function encryptData(data) {
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(algorithm, Buffer.from(encryptionkey, keyEncoding), iv);
@@ -13,6 +14,7 @@ export function encryptData(data) {
     return iv.toString('hex') + ':' + encrypted;
 }
 
+// Titkosított érték visszafejtése az IV és a kulcs felhasználásával
 export function decryptData(data) {
     const textParts = data.split(':');
     const iv = Buffer.from(textParts.shift(), 'hex');

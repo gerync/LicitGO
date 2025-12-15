@@ -1,6 +1,6 @@
 import configs from '../configs/Configs.js';
 import generateUserToken from '../utilities/usertoken';
-import useDB from './DB.js';
+import DB from '../database/DB.js';
 import argon2 from 'argon2';
 import { encryptData } from '../utilities/Encrypt.js';
 
@@ -8,9 +8,9 @@ export default async function setupDB() {
 
     const fs = await import('fs/promises');
     const sql = await fs.readFile('../../setup.sql', 'utf8');
-    await useDB(sql);
-
-    const [rows] = await useDB('SELECT COUNT(*) AS count FROM users WHERE type = ?', ['superadmin']);
+    await DB.use(sql);
+    
+    const [rows] = await DB.use('SELECT COUNT(*) AS count FROM users WHERE type = ?', ['superadmin']);
     if (rows[0].count === 0) {
         const usertoken = generateUserToken();
         const { usertag, email, password, fullname, gender, birthdate, mobile } = configs.baseadmin;
@@ -23,7 +23,7 @@ export default async function setupDB() {
             fullname, gender, birthdate, mobile, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const params = [usertoken, usertag, passwordhash, encryptedEmail,
             encryptedFullname, gender === 'male' ? 1 : 0, birthdate, encryptedMobile, 'superadmin'];
-        await useDB(insertQuery, params);
+        await DB.use(insertQuery, params);
         console.log(`Superadmin created with details: \n
             Usertag: ${usertag} \n
             Email: ${email} \n

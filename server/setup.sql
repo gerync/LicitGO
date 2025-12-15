@@ -95,11 +95,11 @@ CREATE TABLE IF NOT EXISTS emailcodes (
     FOREIGN KEY (usertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS usersettings (
+CREATE TABLE IF NOT EXISTS settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usertoken VARCHAR(64) NOT NULL UNIQUE,
     darkmode BOOLEAN DEFAULT FALSE,
-    language ENUM('en', 'hu') DEFAULT 'en' NOT NULL,
+    language ENUM('EN', 'HU') DEFAULT 'EN' NOT NULL,
     currency ENUM('EUR', 'HUF', 'USD') DEFAULT 'EUR' NOT NULL,
     FOREIGN KEY (usertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
