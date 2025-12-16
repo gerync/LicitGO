@@ -2,7 +2,7 @@ import ObjectLenght from '../../../utilities/ObjectLenght.js';
 import regexes from '../../../utilities/Regexes.js';
 
 export default function changePasswordMiddleware(req, res, next) {
-    const lang = req.cookies.language.toUpperCase() || 'EN';
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const { currentPassword, newPassword, newPasswordConfirm } = req.body;
     if (!currentPassword || !newPassword || !newPasswordConfirm) {
         return res.status(400).send(lang === 'HU' ? 'Hiányzó adatok.' : 'Missing data.');

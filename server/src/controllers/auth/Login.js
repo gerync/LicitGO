@@ -9,7 +9,7 @@ import DB from '../../database/DB.js';
 export default async function LoginController(req, res) {
     // #region Adatbázis kapcsolat létrehozása, nyelvi beállítás, kérés paraméterek kiemelése
     const conn = await DB.pool.getConnection();
-    const lang = req.cookies.language.toUpperCase() || 'EN'
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const { identifier, password, keeplogin } = req.body;
     // #endregion
 

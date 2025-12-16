@@ -1,7 +1,7 @@
 // Kijelentkezés: auth süti törlése
 export default async function Logout(req, res) {
     // #region Nyelvi beállítás lekérése, auth süti létezésének ellenőrzése - már bejelentkezettvan-e
-    const lang = req.cookies.language.toUpperCase() || 'EN'
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const authToken = req.cookies.auth;
     if (!authToken) {
         return res.status(400).send(lang === 'HU' ? 'Nincs bejelentkezve.' : 'You are not logged in.');

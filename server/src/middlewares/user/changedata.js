@@ -3,7 +3,7 @@ import ObjectLength from '../../utilities/ObjectLength.js';
 
 export default function changeDataMiddleware(req, res, next) {
     // #region Nyelvi beállítás sütiből, kérés test paraméterek kiemelése, legalább egy módosítható mező kötelező
-    const lang = req.cookies.language.toUpperCase() || 'EN'
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const { usertag, fullname, mobile, gender } = req.body;
     if (!usertag && !fullname && !mobile && !gender) {
         return res.status(400).send(lang === 'HU' ? 'Nincs megváltoztatandó adat megadva.' : 'No data to change provided.');

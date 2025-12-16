@@ -2,7 +2,7 @@ import DB from '../../../database/DB.js';
 import argon from 'argon2';
 
 export default async function changePasswordController(req, res) {
-    const lang = req.cookies.language.toUpperCase() || 'EN';
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const { currentPassword, newPassword } = req.body;
     const usertoken = req.usertoken;
     const user = await DB.query('SELECT passwordhash FROM users WHERE usertoken = ?', [usertoken]);

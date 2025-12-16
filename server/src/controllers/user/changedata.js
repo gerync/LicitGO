@@ -3,7 +3,7 @@ import DB from '../../database/DB.js';
 
 export async function changeDataController(req, res) {
     // #region Kapcsolat és adatkiemelés
-    const lang = req.cookies.language.toUpperCase() || 'EN';
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const conn = await DB.pool.getConnection();
     const { usertag, fullname, mobile, gender } = req.body;
     const updates = [];
@@ -79,7 +79,7 @@ export async function changeDataController(req, res) {
 // Felhasználói alapadatok lekérése és érzékeny mezők maszkolása
 export async function getUserData(req, res) {
     // #region Kapcsolat és adatok lekérése
-    const lang = req.cookies.language.toUpperCase() || 'EN';
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const conn = await DB.pool.getConnection();
     const usertoken = req.usertoken;
     const query = 'SELECT usertag, fullname, mobile, gender, birthdate, email FROM users WHERE usertoken = ?';

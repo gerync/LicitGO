@@ -7,7 +7,7 @@ import { encryptData } from '../../utilities/Encrypt.js';
 // Új felhasználó regisztrációja, ütközések és egyedi token biztosítása
 export default async function RegisterController(req, res) {
     // #region Sütik és kérés testéből az összes szükséges felhasználói adat kiemelése, nyelvi beállítás
-    const lang = req.cookies.language.toUpperCase() || 'EN'
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const currency = req.cookies.currency || 'USD';
     const darkmode = req.cookies.darkmode || 'false';
     const { usertag, password, email, fullname, mobile, gender, birthdate } = req.body;

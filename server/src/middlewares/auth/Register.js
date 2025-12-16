@@ -4,7 +4,7 @@ import regexes from '../../utilities/Regexes.js';
 export default function RegisterMiddleware(req, res, next) {
     // #region Változók kiemelése és nyelvbeállítás
     let { usertag, password, email, fullname, mobile, gender, birthdate, passwordconfirm } = req.body;
-    const lang = req.cookies.language.toUpperCase() || 'EN';
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     // #endregion
 
     // #region Kötelező mezők ellenőrzése (usertag, password, passwordconfirm, email, fullname, mobile, gender, birthdate) - 8 db, egyenként lehető
@@ -115,4 +115,5 @@ export default function RegisterMiddleware(req, res, next) {
         return res.status(400).send(lang === 'HU' ? 'A gender nem lehet hosszabb 10 karakternél.' : 'Gender cannot be longer than 10 characters.');
     }
     next();
+    // #endregion
 }

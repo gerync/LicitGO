@@ -2,7 +2,7 @@ import DB from '../../database/DB.js';
 
 export async function setUserSettings(req, res) {
     const conn = await DB.pool.getConnection();
-    const lang = req.cookies.language.toUpperCase() || 'EN'
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const { language, darkmode, currency } = req.body;
     const usertoken = req.usertoken;
     const updateFields = [];

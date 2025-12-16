@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 // Hitelesítési middleware: JWT dekódolás, lejárat ellenőrzés, usertoken továbbítása a következő lépéseknek
 export default function isLoggedIn(req, res, next) {
     // #region Nyelvbeállítás sütiből, auth token élérhető-e - 401 ha hiányzik auth cookie
-    const lang = req.cookies.language.toUpperCase() || 'EN'
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const authToken = req.cookies.auth;
     if (!authToken) {
         return res.status(401).send(lang === 'HU' ? 'Nincs bejelentkezve.' : 'You are not logged in.');

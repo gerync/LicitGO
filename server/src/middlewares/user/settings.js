@@ -5,7 +5,7 @@ import configs from "../../configs/Configs.js";
 // Felhasználói beállítások validálása: mennyiség, típus, értékkészlet; JWT-ből usertoken kiemelése
 export default async function userSettings(req, res, next) {
     // #region Nyelvi beállítás sütiből, kérés test paraméterek kiemelése (language, darkmode, currency), legalább egy mező kötelező
-    const lang = req.cookies.language.toUpperCase() || 'EN'
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const { language, darkmode, currency } = req.body;
     if (!language && !darkmode && !currency) {
         return res.status(400).send(lang === 'HU' ? 'Nincsenek megadva beállítások.' : 'No settings provided.');

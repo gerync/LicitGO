@@ -2,7 +2,7 @@ import ObjectLenght from '../../utilities/ObjectLenght.js';
 
 export default function LoginMiddleware(req, res, next) {
     // #region Nyelvi beállítás sütiből, bejelentkezési státusz - ha van auth süti, akkor már bejelentkezve
-    const lang = req.cookies.language.toUpperCase() || 'EN'
+    const lang = (req.cookies.language || 'EN').toUpperCase();
     const authToken = req.cookies.auth;
     if (authToken) {
         return res.status(400).send(lang === 'HU' ? 'Már be vagy jelentkezve.' : 'You are already logged in.');
