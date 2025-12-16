@@ -1,0 +1,29 @@
+import configs from '../../configs/Configs.js';
+import jwt from 'jsonwebtoken';
+
+// Hitelesítési middleware: JWT dekódolás, lejárat ellenőrzés, usertoken továbbítása a következő lépéseknek
+export default function isLoggedIn(req, res, next) {
+    // #region Nyelvbeállítás sütiből, auth token élérhető-e - 401 ha hiányzik auth cookie
+    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const authToken = req.cookies.auth;
+    if (!authToken) {
+        return res.status(401).send(lang === 'HU' ? 'Nincs bejelentkezve.' : 'You are not logged in.');
+    }
+    // #endregion
+
+    // #region JWT token érvényessége (lejárt/manipulált token 401-et ad), usertoken kiemelése a dekódolt objektumból
+    // verify dob hibát lejárt vagy manipulált tokenre - itt feltartóztatjuk
+    const decoded = jwt.verify(authToken, configs.jwtSecret);
+    if (!decoded.usertoken) {
+        return res.status(401).send(lang === 'HU' ? 'Érvénytelen token.' : 'Invalid token.');
+    }
+    // #endregion
+
+    // #region Kérés objektum felgazdagodása usertoken-nel és dekódolt user info-val a folytatáshoz
+    // Továbbítjuk azonosítókat a vezérlőknek
+    req.usertoken = decoded.usertoken;
+    req.user = decoded;
+    // #endregion
+
+    next();
+}
