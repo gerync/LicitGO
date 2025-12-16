@@ -16,13 +16,13 @@ import ToggleTFAController from '../controllers/user/tfa/toggle.js';
 const router = express.Router();
 
 // ##region Felhasználói adatok módosítása
-router.put('/changedata', isLoggedIn, changeDataMiddleware, ChangeDataController);
+router.put('/changedata', [isLoggedIn, changeDataMiddleware], ChangeDataController);
 // ##endregion
 // ##region Felhasználói beállítások módosítása
-router.put('/settings', isLoggedIn, userSettingsMiddleware, UserSettingsController);
+router.put('/settings', [isLoggedIn, userSettingsMiddleware], UserSettingsController);
 // ##endregion
 // ##region Kétlépcsős azonosítás toggle
-router.post('/tfa/toggle', isLoggedIn, toggleTFAMiddleware, ToggleTFAController);
+router.post('/tfa/toggle', [isLoggedIn, toggleTFAMiddleware], ToggleTFAController);
 // ##endregion
 
 export default router;

@@ -2,22 +2,28 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
-import { errorHandler, LogError } from './Middlewares/general/Error.js';
-import logger from './Middlewares/Logger.js';
-import setup from './Database/setupDB.js';
+import errorHandler from './middlewares/general/error.js';
+import setup from './database/SetupDB.js';
 
 import configs from './configs/Configs.js';
 import authRoutes from './routes/auth.js';
+import userRoutes from './routes/user.js';
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+    origin: configs.server.domain ? [configs.server.domain] : true,
+    credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
-app.use(logger);
 const PORT = configs.server.port
 
 
 app.use('/', authRoutes);
+app.use(errorHandler);
+app.use('/user', userRoutes);
+
 
 app.listen(PORT, async () => {
     await setup();

@@ -19,6 +19,12 @@ export default function isLoggedIn(req, res, next) {
     }
     // #endregion
 
+    // #region Ideiglenes token ellenőrzése - ha tfa_required flag van, 2FA verifikáció szükséges
+    if (decoded.tfa_required) {
+        return res.status(401).send(lang === 'HU' ? 'Kétlépcsős azonosítás verifikációja szükséges.' : 'Two-factor authentication verification required.');
+    }
+    // #endregion
+
     // #region Kérés objektum felgazdagodása usertoken-nel és dekódolt user info-val a folytatáshoz
     // Továbbítjuk azonosítókat a vezérlőknek
     req.usertoken = decoded.usertoken;
