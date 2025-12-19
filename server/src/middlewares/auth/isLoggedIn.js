@@ -7,7 +7,7 @@ export default function isLoggedIn(req, res, next) {
     const lang = (req.cookies.language || 'EN').toUpperCase();
     const authToken = req.cookies.auth;
     if (!authToken) {
-        return res.status(401).send(lang === 'HU' ? 'Nincs bejelentkezve.' : 'You are not logged in.');
+        return res.status(401).json({ error: lang === 'HU' ? 'Nincs bejelentkezve.' : 'You are not logged in.' });
     }
     // #endregion
 
@@ -16,17 +16,18 @@ export default function isLoggedIn(req, res, next) {
     try {
         const decoded = jwt.verify(authToken, configs.jwtSecret);
         if (!decoded.usertoken) {
-            return res.status(401).send(lang === 'HU' ? 'Érvénytelen token.' : 'Invalid token.');
+            return res.status(401).json({ error: lang === 'HU' ? 'Érvénytelen token.' : 'Invalid token.' });
         }
 
         if (decoded.tfa_required) {
-            return res.status(401).send(lang === 'HU' ? 'Kétlépcsős azonosítás verifikációja szükséges.' : 'Two-factor authentication verification required.');
+            return res.status(401).json({ error: lang === 'HU' ? 'Kétlépcsős azonosítás verifikációja szükséges.' : 'Two-factor authentication verification required.' });
         }
 
         req.usertoken = decoded.usertoken;
         req.user = decoded;
+        req.lang = lang;
     } catch (err) {
-        return res.status(401).send(lang === 'HU' ? 'Érvénytelen vagy lejárt token.' : 'Invalid or expired token.');
+        return res.status(401).json({ error: lang === 'HU' ? 'Érvénytelen vagy lejárt token.' : 'Invalid or expired token.' });
     }
     // #endregion
 

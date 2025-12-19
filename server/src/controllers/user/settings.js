@@ -24,7 +24,7 @@ export async function setUserSettings(req, res) {
 
     if (updateFields.length === 0) {
         conn.release();
-        return res.status(400).send(lang === 'HU' ? 'Nincsenek megadva beállítások a frissítéshez.' : 'No settings provided for update.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Nincsenek megadva beállítások a frissítéshez.' : 'No settings provided for update.' });
     }
 
     const updateQuery = `UPDATE settings SET ${updateFields.join(', ')} WHERE usertoken = ?`;
@@ -38,5 +38,5 @@ export async function setUserSettings(req, res) {
     res.cookie('darkmode', darkmode !== undefined ? darkmode.toString() : req.cookies.darkmode, cookieBase);
     res.cookie('currency', currency || req.cookies.currency, cookieBase);
 
-    return res.status(200).send(lang === 'HU' ? 'Beállítások sikeresen frissítve.' : 'Settings updated successfully.');
+    return res.status(200).json({ message: lang === 'HU' ? 'Beállítások sikeresen frissítve.' : 'Settings updated successfully.' });
 }

@@ -13,7 +13,7 @@ export async function getProfileController(req, res) {
     const rows = await DB.use(selectQuery, selectParams);
     if (rows.length === 0) {
         conn.release();
-        return res.status(404).send(lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.');
+        return res.status(404).json({ error: lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.' });
     }
     const userData = rows[0];
     // #endregion

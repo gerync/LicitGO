@@ -21,7 +21,7 @@ export default async function LoginController(req, res) {
     const rows = await DB.use(selectQuery, selectParams);
     if (rows.length === 0) {
         conn.release();
-        return res.status(404).send(lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.');
+        return res.status(404).json({ error: lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.' });
     }
     // #endregion
 
@@ -30,7 +30,7 @@ export default async function LoginController(req, res) {
     const validPassword = await argon.verify(passwordhash, password);
     if (!validPassword) {
         conn.release();
-        return res.status(401).send(lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.');
+        return res.status(401).json({ error: lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.' });
     }
     // #endregion
 
@@ -68,6 +68,6 @@ export default async function LoginController(req, res) {
     res.cookie('language', settings[0].language || 'en', cookieBase);
     res.cookie('darkmode', settings[0].darkmode ? 'true' : 'false', cookieBase);
     res.cookie('currency', settings[0].currency || 'USD', cookieBase);
-    return res.status(200).send(lang === 'HU' ? 'Sikeres bejelentkezés.' : 'Login successful.');
+    return res.status(200).json({ message: lang === 'HU' ? 'Sikeres bejelentkezés.' : 'Login successful.' });
     // #endregion
 }

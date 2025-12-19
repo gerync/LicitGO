@@ -9,28 +9,28 @@ export default function RegisterMiddleware(req, res, next) {
 
     // #region Kötelező mezők ellenőrzése (usertag, password, passwordconfirm, email, fullname, mobile, gender, birthdate) - 8 db, egyenként lehető
     if (!usertag) {
-        return res.status(400).send(lang === 'HU' ? 'A felhasználónév megadása kötelező.' : 'Usertag is required.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A felhasználónév megadása kötelező.' : 'Usertag is required.' });
     }
     if (!password) {
-        return res.status(400).send(lang === 'HU' ? 'A jelszó megadása kötelező.' : 'Password is required.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A jelszó megadása kötelező.' : 'Password is required.' });
     }
     if (!email) {
-        return res.status(400).send(lang === 'HU' ? 'Az email cím megadása kötelező.' : 'Email is required.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Az email cím megadása kötelező.' : 'Email is required.' });
     }
     if (!mobile) {
-        return res.status(400).send(lang === 'HU' ? 'A telefonszám megadása kötelező.' : 'Mobile number is required.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A telefonszám megadása kötelező.' : 'Mobile number is required.' });
     }
     if (!fullname) {
-        return res.status(400).send(lang === 'HU' ? 'A teljes név megadása kötelező.' : 'Fullname is required.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A teljes név megadása kötelező.' : 'Fullname is required.' });
     }
     if (!gender) {
-        return res.status(400).send(lang === 'HU' ? 'A nem megadása kötelező.' : 'Gender is required.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A nem megadása kötelező.' : 'Gender is required.' });
     }
     if (!birthdate) {
-        return res.status(400).send(lang === 'HU' ? 'A születési dátum megadása kötelező.' : 'Birthdate is required.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A születési dátum megadása kötelező.' : 'Birthdate is required.' });
     }
     if (!passwordconfirm) {
-        return res.status(400).send(lang === 'HU' ? 'A jelszavak nem egyeznek.' : 'Password confirmation is required.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A jelszavak nem egyeznek.' : 'Password confirmation is required.' });
     }
     // #endregion
 
@@ -70,49 +70,49 @@ export default function RegisterMiddleware(req, res, next) {
 
     // #region Jelszó és jelszó-ismétlés egyeztetése, egyazonóság kötelező a regisztrációhoz
     if (password !== passwordconfirm) {
-        return res.status(400).send(lang === 'HU' ? 'A jelszavak nem egyeznek.' : 'Passwords do not match.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A jelszavak nem egyeznek.' : 'Passwords do not match.' });
     }
     // #endregion
 
     // #region Mezőszám ellenőrzés (pontosan 9 kötelező), ObjectLength használatával
     if (ObjectLength(req.body, 9) !== 0) {
-        return res.status(400).send(lang === 'HU' ? 'Érvénytelen mezők száma.' : 'Invalid number of fields.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen mezők száma.' : 'Invalid number of fields.' });
     }
     // #endregion
 
     // #region Regex pattern ellenőrzés: usertag/email/fullname/mobile formátum, jelszó komplexitas (hossz, kis/nagybetu, digit, speciális), nem hossz (max 10)
     if (!regexes.usertag.test(usertag)) {
-        return res.status(400).send(lang === 'HU' ? 'A felhasználónév érvénytelen formátumú.' : 'Invalid usertag format.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A felhasználónév érvénytelen formátumú.' : 'Invalid usertag format.' });
     }
     if (!regexes.password.lengthmin.test(password)) {
-        return res.status(400).send(lang === 'HU' ? 'A jelszónak legalább 8 karakter hosszúnak kell lennie.' : 'Password must be at least 8 characters long.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A jelszónak legalább 8 karakter hosszúnak kell lennie.' : 'Password must be at least 8 characters long.' });
     }
     if (!regexes.password.lengthmax.test(password)) {
-        return res.status(400).send(lang === 'HU' ? 'A jelszó legfeljebb 32 karakter hosszú lehet.' : 'Password can be at most 32 characters long.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A jelszó legfeljebb 32 karakter hosszú lehet.' : 'Password can be at most 32 characters long.' });
     }
     if (!regexes.password.lowercase.test(password)) {
-        return res.status(400).send(lang === 'HU' ? 'A jelszónak tartalmaznia kell legalább egy kisbetűt.' : 'Password must contain at least one lowercase letter.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A jelszónak tartalmaznia kell legalább egy kisbetűt.' : 'Password must contain at least one lowercase letter.' });
     }
     if (!regexes.password.uppercase.test(password)) {
-        return res.status(400).send(lang === 'HU' ? 'A jelszónak tartalmaznia kell legalább egy nagybetűt.' : 'Password must contain at least one uppercase letter.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A jelszónak tartalmaznia kell legalább egy nagybetűt.' : 'Password must contain at least one uppercase letter.' });
     }
     if (!regexes.password.digit.test(password)) {
-        return res.status(400).send(lang === 'HU' ? 'A jelszónak tartalmaznia kell legalább egy számot.' : 'Password must contain at least one digit.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A jelszónak tartalmaznia kell legalább egy számot.' : 'Password must contain at least one digit.' });
     }
     if (!regexes.password.special.test(password)) {
-        return res.status(400).send(lang === 'HU' ? 'A jelszónak tartalmaznia kell legalább egy speciális karaktert.' : 'Password must contain at least one special character.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A jelszónak tartalmaznia kell legalább egy speciális karaktert.' : 'Password must contain at least one special character.' });
     }
     if (!regexes.email.test(email)) {
-        return res.status(400).send(lang === 'HU' ? 'Az email cím érvénytelen formátumú.' : 'Invalid email format.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Az email cím érvénytelen formátumú.' : 'Invalid email format.' });
     }
     if (!regexes.fullname.test(fullname)) {
-        return res.status(400).send(lang === 'HU' ? 'A teljes név érvénytelen formátumú.' : 'Invalid fullname format.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A teljes név érvénytelen formátumú.' : 'Invalid fullname format.' });
     }
     if (!regexes.mobile.test(mobile)) {
-        return res.status(400).send(lang === 'HU' ? 'A telefonszám érvénytelen formátumú.' : 'Invalid mobile number format.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A telefonszám érvénytelen formátumú.' : 'Invalid mobile number format.' });
     }
     if (gender.length > 10 ) {
-        return res.status(400).send(lang === 'HU' ? 'A gender nem lehet hosszabb 10 karakternél.' : 'Gender cannot be longer than 10 characters.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A gender nem lehet hosszabb 10 karakternél.' : 'Gender cannot be longer than 10 characters.' });
     }
     next();
     // #endregion

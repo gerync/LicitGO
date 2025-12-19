@@ -6,7 +6,7 @@ export default function changeDataMiddleware(req, res, next) {
     const lang = (req.cookies.language || 'EN').toUpperCase();
     let { usertag, fullname, mobile, gender } = req.body;
     if (!usertag && !fullname && !mobile && !gender) {
-        return res.status(400).send(lang === 'HU' ? 'Nincs megváltoztatandó adat megadva.' : 'No data to change provided.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Nincs megváltoztatandó adat megadva.' : 'No data to change provided.' });
     }
     // #endregion
 
@@ -31,25 +31,25 @@ export default function changeDataMiddleware(req, res, next) {
 
     // #region Módosításra köldott paraméterek száma (1-4 között), -1 vagy 1 vis, ha kevesebb vagy több
     if (ObjectLength(req.body, 1, 4) == -1) {
-        return res.status(400).send(lang === 'HU' ? 'Nincs megváltoztatandó adat megadva.' : 'No data to change provided.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Nincs megváltoztatandó adat megadva.' : 'No data to change provided.' });
     }
     if (ObjectLength(req.body, 1, 4) == 1) {
-        return res.status(400).send(lang === 'HU' ? 'Túl sok adat lett megadva.' : 'Too many data provided.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Túl sok adat lett megadva.' : 'Too many data provided.' });
     }
     // #endregion
 
     // #region Regex pattern ellenőrzés: usertag, fullname, mobile formátum, gender hossz 10 karakteren belül
     if (usertag && !regexes.usertag.test(usertag)) {
-        return res.status(400).send(lang === 'HU' ? 'Érvénytelen felhasználónév formátum.' : 'Invalid usertag format.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen felhasználónév formátum.' : 'Invalid usertag format.' });
     }
     if (fullname && !regexes.fullname.test(fullname)) {
-        return res.status(400).send(lang === 'HU' ? 'Érvénytelen teljes név formátum.' : 'Invalid fullname format.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen teljes név formátum.' : 'Invalid fullname format.' });
     }
     if (mobile && !regexes.mobile.test(mobile)) {
-        return res.status(400).send(lang === 'HU' ? 'Érvénytelen mobiltelefonszám formátum.' : 'Invalid mobile number format.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen mobiltelefonszám formátum.' : 'Invalid mobile number format.' });
     }
     if (gender && gender.length > 10 ) {
-        return res.status(400).send(lang === 'HU' ? 'A gender nem lehet hosszabb 10 karakternél.' : 'Gender cannot be longer than 10 characters.');
+        return res.status(400).json({ error: lang === 'HU' ? 'A gender nem lehet hosszabb 10 karakternél.' : 'Gender cannot be longer than 10 characters.' });
     }
     // #endregion
 

@@ -33,8 +33,8 @@ CREATE TABLE IF NOT EXISTS cars (
     model VARCHAR(150) NOT NULL,
     odometerKM INT NOT NULL,
     modelyear INT NOT NULL,
-    efficiencyHP INT NOT NULL,
-    efficiencyKW INT NOT NULL,
+    efficiency DECIMAL(4,2) NOT NULL,
+    efficiencyunit ENUM('HP', 'kW') NOT NULL,
     enginecapacityCC INT NOT NULL,
     fueltype ENUM('gasoline', 'diesel', 'electric', 'hybrid', 'other') DEFAULT 'gasoline' NOT NULL,
     emissionsGKM INT,
@@ -47,9 +47,8 @@ CREATE TABLE IF NOT EXISTS cars (
     maxspeedKMH INT,
     zeroToHundredSec FLOAT,
     weightKG INT,
-    utilityfeatures TEXT,
-    safetyfeatures TEXT,
     factoryExtras TEXT,
+    features JSON,
     ownertoken VARCHAR(64) NOT NULL,
     FOREIGN KEY (ownertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
