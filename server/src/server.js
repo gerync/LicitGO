@@ -21,8 +21,9 @@ const PORT = configs.server.port
 
 
 app.use('/', authRoutes);
-app.use(errorHandler);
 app.use('/user', userRoutes);
+
+app.use(errorHandler);
 
 
 app.listen(PORT, async () => {

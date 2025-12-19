@@ -15,7 +15,7 @@ export default async function LoginController(req, res) {
     // #endregion
 
     // #region Felhasználó adaténak keresése (usertoken, jelszóhash) az azonosító alapján (email/usertag/mobil)
-    const selectQuery = 'SELECT usertoken, passwordhash, tfaenabled, tfasecret FROM users WHERE email = ? OR usertag = ? OR mobile = ?';
+    const selectQuery = 'SELECT usertoken, usertag, passwordhash, tfaenabled, tfasecret FROM users WHERE email = ? OR usertag = ? OR mobile = ?';
     const encryptedIdentifier = encryptData(identifier);
     const selectParams = [encryptedIdentifier, identifier, encryptedIdentifier];
     const rows = await DB.use(selectQuery, selectParams);
@@ -64,6 +64,7 @@ export default async function LoginController(req, res) {
     const maxage = keeplogin ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
     const cookieBase = { maxAge: maxage, sameSite: 'lax', secure: configs.environment.isProduction };
     res.cookie('auth', token, { ...cookieBase, httpOnly: true });
+    res.cookie('usertag', rows[0].usertag, cookieBase);
     res.cookie('language', settings[0].language || 'en', cookieBase);
     res.cookie('darkmode', settings[0].darkmode ? 'true' : 'false', cookieBase);
     res.cookie('currency', settings[0].currency || 'USD', cookieBase);

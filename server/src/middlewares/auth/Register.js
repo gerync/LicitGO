@@ -1,4 +1,4 @@
-import ObjectLenght from '../../utilities/ObjectLength.js';
+import ObjectLength from '../../utilities/ObjectLength.js';
 import regexes from '../../utilities/Regexes.js';
 
 export default function RegisterMiddleware(req, res, next) {
@@ -75,7 +75,7 @@ export default function RegisterMiddleware(req, res, next) {
     // #endregion
 
     // #region Mezőszám ellenőrzés (pontosan 9 kötelező), ObjectLength használatával
-    if (ObjectLenght(req.body, 9) !== 0) {
+    if (ObjectLength(req.body, 9) !== 0) {
         return res.status(400).send(lang === 'HU' ? 'Érvénytelen mezők száma.' : 'Invalid number of fields.');
     }
     // #endregion

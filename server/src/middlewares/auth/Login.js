@@ -1,4 +1,4 @@
-import ObjectLenght from '../../utilities/ObjectLenght.js';
+import ObjectLength from '../../utilities/ObjectLength.js';
 
 export default function LoginMiddleware(req, res, next) {
     // #region Nyelvi beállítás sütiből, bejelentkezési státusz - ha van auth süti, akkor már bejelentkezve
@@ -17,7 +17,7 @@ export default function LoginMiddleware(req, res, next) {
     if (keeplogin && typeof keeplogin !== 'boolean') {
         return res.status(400).send(lang === 'HU' ? 'Érvénytelen maradjak bejelentkezve mező.' : 'Invalid keep me logged in field.');
     }
-    if (ObjectLenght(req.body, 2, 3) !== 0) {
+    if (ObjectLength(req.body, 2, 3) !== 0) {
         return res.status(400).send(lang === 'HU' ? 'Érvénytelen mezők száma.' : 'Invalid number of fields.');
     }
     // #endregion

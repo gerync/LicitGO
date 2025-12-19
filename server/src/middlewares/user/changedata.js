@@ -4,7 +4,7 @@ import ObjectLength from '../../utilities/ObjectLength.js';
 export default function changeDataMiddleware(req, res, next) {
     // #region Nyelvi beállítás sütiből, kérés test paraméterek kiemelése, legalább egy módosítható mező kötelező
     const lang = (req.cookies.language || 'EN').toUpperCase();
-    const { usertag, fullname, mobile, gender } = req.body;
+    let { usertag, fullname, mobile, gender } = req.body;
     if (!usertag && !fullname && !mobile && !gender) {
         return res.status(400).send(lang === 'HU' ? 'Nincs megváltoztatandó adat megadva.' : 'No data to change provided.');
     }
@@ -48,7 +48,7 @@ export default function changeDataMiddleware(req, res, next) {
     if (mobile && !regexes.mobile.test(mobile)) {
         return res.status(400).send(lang === 'HU' ? 'Érvénytelen mobiltelefonszám formátum.' : 'Invalid mobile number format.');
     }
-    if (gender.lenght > 10 ) {
+    if (gender && gender.length > 10 ) {
         return res.status(400).send(lang === 'HU' ? 'A gender nem lehet hosszabb 10 karakternél.' : 'Gender cannot be longer than 10 characters.');
     }
     // #endregion
