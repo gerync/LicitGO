@@ -1,7 +1,7 @@
-CREATE DATABASE IF NOT EXISTS licitgoeu
+CREATE DATABASE IF NOT EXISTS licitgo
 CHARACTER SET utf8
 DEFAULT COLLATE utf8_hungarian_ci;
-USE licitgoeu;
+USE licitgo;
 
 CREATE TABLE IF NOT EXISTS users (
     usertoken VARCHAR(64) PRIMARY KEY NOT NULL UNIQUE,
@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
     lastlogin DATETIME,
     tfaenabled BOOLEAN DEFAULT FALSE,
     tfasecret VARCHAR(255) DEFAULT NULL,
-    tfabackups TEXT DEFAULT NULL
+    tfabackups TEXT DEFAULT NULL,
+    publicContacts BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS profpics (
@@ -32,8 +33,8 @@ CREATE TABLE IF NOT EXISTS cars (
     model VARCHAR(150) NOT NULL,
     odometerKM INT NOT NULL,
     modelyear INT NOT NULL,
-    efficiencyHP INT NOT NULL,
-    efficiencyKW INT NOT NULL,
+    efficiency DECIMAL(4,2) NOT NULL,
+    efficiencyunit ENUM('HP', 'kW') NOT NULL,
     enginecapacityCC INT NOT NULL,
     fueltype ENUM('gasoline', 'diesel', 'electric', 'hybrid', 'other') DEFAULT 'gasoline' NOT NULL,
     emissionsGKM INT,
@@ -46,9 +47,8 @@ CREATE TABLE IF NOT EXISTS cars (
     maxspeedKMH INT,
     zeroToHundredSec FLOAT,
     weightKG INT,
-    utilityfeatures TEXT,
-    safetyfeatures TEXT,
     factoryExtras TEXT,
+    features JSON,
     ownertoken VARCHAR(64) NOT NULL,
     FOREIGN KEY (ownertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
@@ -113,10 +113,10 @@ CREATE TABLE IF NOT EXISTS errorlogs (
 );
 
 CREATE TABLE IF NOT EXISTS exchangerates (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        eurousd DECIMAL(10, 6) NOT NULL,
-        hufusd DECIMAL(10, 6) NOT NULL,
-        hufeuro DECIMAL(10, 6) NOT NULL,
-        date DATE NOT NULL,
-        fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    eurousd DECIMAL(10, 6) NOT NULL,
+    hufusd DECIMAL(10, 6) NOT NULL,
+    hufeuro DECIMAL(10, 6) NOT NULL,
+    date DATE NOT NULL,
+    fetched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

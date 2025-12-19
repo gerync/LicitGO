@@ -17,7 +17,7 @@ export async function changeDataController(req, res) {
         const usertagRows = await DB.use(usertagQuery, usertagParams);
         if (usertagRows[0].count > 0) {
             conn.release();
-            return res.status(409).send(lang === 'HU' ? 'A felhasználónév már foglalt.' : 'The usertag is already taken.');
+            return res.status(409).json({ error: lang === 'HU' ? 'A felhasználónév már foglalt.' : 'The usertag is already taken.' });
         }
         updates.push('usertag = ?');
         params.push(usertag);
@@ -40,7 +40,7 @@ export async function changeDataController(req, res) {
         const mobileRows = await DB.use(mobileQuery, mobileParams);
         if (mobileRows[0].count > 0) {
             conn.release();
-            return res.status(409).send(lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.');
+            return res.status(409).json({ error: lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.' });
         }
         updates.push('mobile = ?');
         params.push(encryptedMobile);
@@ -57,7 +57,7 @@ export async function changeDataController(req, res) {
     // #region Üres frissítések ellenőrzés és adatbázis művelet
     if (updates.length === 0) {
         conn.release();
-        return res.status(400).send(lang === 'HU' ? 'Nincs frissítendő adat.' : 'No data to update.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Nincs frissítendő adat.' : 'No data to update.' });
     }
 
     params.push(req.usertoken);
@@ -68,10 +68,10 @@ export async function changeDataController(req, res) {
 
     // #region Válasz kezelése
     if (result.affectedRows === 1) {
-        return res.status(200).send(lang === 'HU' ? 'Adatok sikeresen frissítve.' : 'Data updated successfully.');
+        return res.status(200).json({ message: lang === 'HU' ? 'Adatok sikeresen frissítve.' : 'Data updated successfully.' });
     }
     else {
-        return res.status(500).send(lang === 'HU' ? 'Hiba történt az adatok frissítése során.' : 'An error occurred while updating data.');
+        return res.status(500).json({ error: lang === 'HU' ? 'Hiba történt az adatok frissítése során.' : 'An error occurred while updating data.' });
     }
     // #endregion
 }
@@ -119,7 +119,7 @@ export async function getUserData(req, res) {
         return res.status(200).send(userData);
     } else {
         res.clearCookie('auth');
-        return res.status(404).send(lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.');
+        return res.status(404).json({ error: lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.' });
     }
     // #endregion
 }

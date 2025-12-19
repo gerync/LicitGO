@@ -21,32 +21,38 @@ export default async function RegisterController(req, res) {
     // #endregion
 
     // #region Adatbázis lekérdezés: email, felhasználónév, telefonszám egyediségének ellenőrzése, hibák visszaadása
-    const checkQuery = 'SELECT COUNT(*) AS count FROM users WHERE email = ? OR usertag = ? OR mobile = ?';
-    const checkParams = [encryptedEmail, usertag, encryptedMobile];
+    const checkQuery = `
+        SELECT 
+            SUM(CASE WHEN email = ? THEN 1 ELSE 0 END) AS emailCount,
+            SUM(CASE WHEN usertag = ? THEN 1 ELSE 0 END) AS usertagCount,
+            SUM(CASE WHEN mobile = ? THEN 1 ELSE 0 END) AS mobileCount
+        FROM users
+        WHERE email = ? OR usertag = ? OR mobile = ?`;
+    const checkParams = [encryptedEmail, usertag, encryptedMobile, encryptedEmail, usertag, encryptedMobile];
     const rows = await DB.use(checkQuery, checkParams);
-    if (rows[0].usertag > 0) {
-        return res.status(409).send(lang === 'HU' ? 'A felhasználónév már foglalt.' : 'The usertag is already taken.');
+    if (rows[0].usertagCount > 0) {
+        return res.status(409).json({ error: lang === 'HU' ? 'A felhasználónév már foglalt.' : 'The usertag is already taken.' });
     }
-    if (rows[0].email > 0) {
-        return res.status(409).send(lang === 'HU' ? 'Az email cím már foglalt.' : 'The email is already taken.');
+    if (rows[0].emailCount > 0) {
+        return res.status(409).json({ error: lang === 'HU' ? 'Az email cím már foglalt.' : 'The email is already taken.' });
     }
-    if (rows[0].mobile > 0) {
-        return res.status(409).send(lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.');
+    if (rows[0].mobileCount > 0) {
+        return res.status(409).json({ error: lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.' });
     }
     // #endregion
 
     // #region Crypto.randomBytes(64) segítégével 128-karakteres hex usertoken generálása, ütközés ellenőrzés while ciklussal
-    const tokenused = true;
-    // Token generálása addig, amíg nem ütközik meglévő rekorddal
     let token = crypto.randomBytes(64).toString('hex');
-    while (tokenused) {
+    let tokenExists = true;
+    while (tokenExists) {
         const tokenCheckQuery = 'SELECT COUNT(*) AS count FROM users WHERE usertoken = ?';
         const tokenCheckParams = [token];
         const tokenRows = await DB.use(tokenCheckQuery, tokenCheckParams);
         if (tokenRows[0].count === 0) {
-            break;
+            tokenExists = false;
+        } else {
+            token = crypto.randomBytes(64).toString('hex');
         }
-        token = crypto.randomBytes(64).toString('hex');
     }
     // #endregion
 
@@ -60,9 +66,9 @@ export default async function RegisterController(req, res) {
         const settingsQuery = 'INSERT INTO settings (usertoken, darkmode, language, currency) VALUES (?, ?, ?, ?)';
         const settingsParams = [token, darkmode, lang, currency];
         await DB.use(settingsQuery, settingsParams);
-        return res.status(201).send(lang === 'HU' ? 'Sikeres regisztráció.' : 'Registration successful.');
+        return res.status(201).json({ message: lang === 'HU' ? 'Sikeres regisztráció.' : 'Registration successful.' });
     } else {
-        return res.status(500).send(lang === 'HU' ? 'Hiba történt a regisztráció során.' : 'An error occurred during registration.');
+        return res.status(500).json({ error: lang === 'HU' ? 'Hiba történt a regisztráció során.' : 'An error occurred during registration.' });
     }
     // #endregion
 }
