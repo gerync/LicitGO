@@ -3,11 +3,16 @@ import generateUserToken from '../utilities/usertoken';
 import DB from '../database/DB.js';
 import argon2 from 'argon2';
 import { encryptData } from '../utilities/Encrypt.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 export default async function setupDB() {
 
     const fs = await import('fs/promises');
-    const sql = await fs.readFile('../../setup.sql', 'utf8');
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const sqlPath = path.join(__dirname, '..', '..', 'setup.sql');
+    const sql = await fs.readFile(sqlPath, 'utf8');
     await DB.use(sql);
     
     const [rows] = await DB.use('SELECT COUNT(*) AS count FROM users WHERE type = ?', ['superadmin']);

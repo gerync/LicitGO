@@ -4,12 +4,12 @@ export default async function Logout(req, res) {
     const lang = (req.cookies.language || 'EN').toUpperCase();
     const authToken = req.cookies.auth;
     if (!authToken) {
-        return res.status(400).send(lang === 'HU' ? 'Nincs bejelentkezve.' : 'You are not logged in.');
+        return res.status(400).json({ error: lang === 'HU' ? 'Nincs bejelentkezve.' : 'You are not logged in.' });
     }
     // #endregion
 
     // #region Auth süti törlése, sikeres válasz visszaadása felhasználónak (200)
     res.clearCookie('auth');
-    return res.status(200).send(lang === 'HU' ? 'Sikeres kijelentkezés.' : 'Logout successful.');
+    return res.status(200).json({ message: lang === 'HU' ? 'Sikeres kijelentkezés.' : 'Logout successful.' });
     // #endregion
 }
