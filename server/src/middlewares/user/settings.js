@@ -30,8 +30,9 @@ export default async function userSettings(req, res, next) {
     }
     // #endregion
 
-    // #region JWT dekódolás ha létezik auth süti, usertoken kiemelése az ősszekapcsolt (decoded) objektumből req.usertoken-be
+    // #region JWT dekódolás ha létezik auth süti, usertoken kiemelése az ősszekapcsolt (decoded) objektumből req.usertoken-be (nem kötelező)
     const authToken = req.cookies.auth;
+    req.usertoken = undefined; // Alapértelmezetten nincs bejelentkezve
     if (authToken) {
         try {
             const decoded = jwt.verify(authToken, configs.jwtSecret);
@@ -39,7 +40,8 @@ export default async function userSettings(req, res, next) {
                 req.usertoken = decoded.usertoken;
             }
         } catch (err) {
-            return res.status(401).json({ error: lang === 'HU' ? 'Érvénytelen vagy lejárt token.' : 'Invalid or expired token.' });
+            // Érvénytelen token - nem megakadályozza a kérést, csak az adatbázis update-et
+            req.usertoken = undefined;
         }
     }
     // #endregion

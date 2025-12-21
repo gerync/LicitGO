@@ -1,8 +1,9 @@
-import DB from '../../database/connection.js';
+import pool from '../../database/DB.js';
 
 export default async function AddCarController(req, res) {
     const lang = req.lang;
     const ownertoken = req.usertoken;
+    const conn = await pool.getConnection();
 
     const { manufacturer, model, odometerKM, modelyear, efficiency, efficiencyunit, 
         enginecapacity, fueltype, transmission, bodytype, color, 
@@ -55,9 +56,9 @@ export default async function AddCarController(req, res) {
             ownertoken
         ];
 
-        const result = await DB.promise().query(query, values);
+        const result = await conn.query(query, values);
         const carId = result[0].insertId;
-
+        pool.releaseConnection(conn);
         return res.status(201).json({
             success: true,
             message: lang === 'HU' ? 'Autó sikeresen hozzáadva.' : 'Car added successfully.',
@@ -65,13 +66,13 @@ export default async function AddCarController(req, res) {
         });
 
     } catch (error) {
+        pool.releaseConnection(conn);
         console.error('Error adding car:', error);
 
         // Handle duplicate VIN
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ error: lang === 'HU' ? 'Ez a VIN már létezik.' : 'This VIN already exists.' });
         }
-
         return res.status(500).json({ error: lang === 'HU' ? 'Hiba az autó hozzáadásakor.' : 'Error adding car.' });
     }
 }

@@ -20,12 +20,15 @@ app.use(express.json());
 const PORT = configs.server.port
 
 
-app.use('/', authRoutes);
+app.use('/auth', authRoutes);
+
 app.use('/user', userRoutes);
 
+
+
+
+
 app.use(errorHandler);
-
-
 app.listen(PORT, async () => {
     await setup();
     console.log(`Server started on port ${PORT}`);

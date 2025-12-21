@@ -1,4 +1,4 @@
-import DB from '../../../database/DB.js';
+import pool from '../../../database/DB.js';
 import otpauth from 'otpauth';
 
 // Kétlépcsős azonosítás (2FA) engedélyezése vagy letiltása, tranzakcióval és biztonságos kezeléssel
@@ -6,7 +6,7 @@ export default async function toggleTFAController(req, res) {
     // #region Kapcsolat és adatkiemelés
     const lang = (req.cookies.language || 'EN').toUpperCase();
     const { enable } = req.body; // boolean: true = engedélyezés, false = letiltás
-    const conn = await DB.pool.getConnection();
+    const conn = await pool.getConnection();
     // #endregion
     // #region Tranzakció indítása
     await conn.beginTransaction();
@@ -15,6 +15,7 @@ export default async function toggleTFAController(req, res) {
     // #region Felhasználó azonosító (usertag) lekérése
     const [userRows] = await conn.query('SELECT usertag FROM users WHERE usertoken = ? LIMIT 1', [req.usertoken]);
     if (!userRows || userRows.length === 0) {
+        pool.releaseConnection(conn);
         throw new Error('USER_NOT_FOUND');
     }
     const usertag = userRows[0].usertag;
@@ -44,11 +45,11 @@ export default async function toggleTFAController(req, res) {
         // #endregion
 
         // #region 2FA bekapcsolása, titok és backup kódok mentése
-        await DB.use('UPDATE users SET tfaenabled = 1, tfasecret = ?, tfabackupcodes = ? WHERE usertoken = ?', [secret, backupCodesString, req.usertoken]);
+        await conn.query('UPDATE users SET tfaenabled = 1, tfasecret = ?, tfabackupcodes = ? WHERE usertoken = ?', [secret, backupCodesString, req.usertoken]);
         // #endregion
 
         // #region Kapcsolat elengedése és válasz (nem küldünk vissza titkot, csak QR/URI)
-        conn.release();
+        pool.releaseConnection(conn);
         return res.status(200).json({
             message: lang === 'HU' ? 'Kétlépcsős azonosítás engedélyezve.' : 'Two-factor authentication enabled.',
             otpauthURL: otpauthURL.toString(),
@@ -58,11 +59,11 @@ export default async function toggleTFAController(req, res) {
     
     else {
         // #region 2FA letiltása és titok törlése
-        await DB.use('UPDATE users SET tfaenabled = 0, tfasecret = NULL, tfabackupcodes = NULL WHERE usertoken = ?', [req.usertoken]);
+        await conn.query('UPDATE users SET tfaenabled = 0, tfasecret = NULL, tfabackupcodes = NULL WHERE usertoken = ?', [req.usertoken]);
         // #endregion
 
         // #region Kapcsolat elengedése és válasz
-        conn.release();
+        pool.releaseConnection(conn);
         return res.status(200).json({
             message: lang === 'HU' ? 'Kétlépcsős azonosítás letiltva.' : 'Two-factor authentication disabled.',
         });

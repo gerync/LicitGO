@@ -1,14 +1,14 @@
 {
   "name": "licitgo-backend",
   "version": "3.0.0",
-  "description": "Backend for LicitGO.eu",
+  "description": "Backend for LicitGO website",
   "main": "src/server.js",
   "type": "module",
   "scripts": {
     "test": "jest"
   },
   "keywords": [ "licitgo", "backend" ],
-  "author": "g3ry",
+  "author": "gerynch",
   "license": "ISC",
   "dependencies": {
     "argon2": "^0.44.0",
