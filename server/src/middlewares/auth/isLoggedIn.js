@@ -4,10 +4,10 @@ import jwt from 'jsonwebtoken';
 // Hitelesítési middleware: JWT dekódolás, lejárat ellenőrzés, usertoken továbbítása a következő lépéseknek
 export default function isLoggedIn(req, res, next) {
     // #region Nyelvbeállítás sütiből, auth token élérhető-e - 401 ha hiányzik auth cookie
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const lang = req.lang;
     const authToken = req.cookies.auth;
     if (!authToken) {
-        return res.status(401).json({ error: lang === 'HU' ? 'Nincs bejelentkezve.' : 'You are not logged in.' });
+        throw new Error([ lang === 'HU' ? 'Nem vagy bejelentkezve.' : 'You are not logged in.', 401 ]);
     }
     // #endregion
 
@@ -16,18 +16,18 @@ export default function isLoggedIn(req, res, next) {
     try {
         const decoded = jwt.verify(authToken, configs.jwtSecret);
         if (!decoded.usertoken) {
-            return res.status(401).json({ error: lang === 'HU' ? 'Érvénytelen token.' : 'Invalid token.' });
+            throw new Error([ lang === 'HU' ? 'Érvénytelen token.' : 'Invalid token.', 401 ]);
         }
 
         if (decoded.tfa_required) {
-            return res.status(401).json({ error: lang === 'HU' ? 'Kétlépcsős azonosítás verifikációja szükséges.' : 'Two-factor authentication verification required.' });
+            throw new Error([ lang === 'HU' ? 'Kétlépcsős azonosítás verifikációja szükséges.' : 'Two-factor authentication verification required.', 401 ]);
         }
 
         req.usertoken = decoded.usertoken;
         req.user = decoded;
         req.lang = lang;
     } catch (err) {
-        return res.status(401).json({ error: lang === 'HU' ? 'Érvénytelen vagy lejárt token.' : 'Invalid or expired token.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen vagy lejárt token.' : 'Invalid or expired token.', 401 ]);
     }
     // #endregion
 

@@ -2,11 +2,11 @@
 
 export default function verifyTFAMiddleware(req, res, next) {
     // #region Nyelvbeállítás és code mező ellenőrzése
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const lang = req.lang;
     let { code } = req.body;
     
     if (!code) {
-        return res.status(400).json({ error: lang === 'HU' ? 'A 2FA kód megadása kötelező.' : '2FA code is required.' });
+        throw new Error(lang === 'HU' ? 'A code mező megadása kötelező.' : 'The code field is required.', 400);
     }
     
     if (typeof code !== 'string') {
@@ -18,14 +18,14 @@ export default function verifyTFAMiddleware(req, res, next) {
     // #region Code formátum ellenőrzése (6 számjegy)
     const codePattern = /^\d{6}$/;
     if (!codePattern.test(code)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen 2FA kód formátum (6 számjegy szükséges).' : 'Invalid 2FA code format (6 digits required).' });
+        throw new Error(lang === 'HU' ? 'Érvénytelen 2FA kód formátum (6 számjegy szükséges).' : 'Invalid 2FA code format (6 digits required).', 400);
     }
     // #endregion
 
     // #region Objektum mezőszám ellenőrzése (pontosan 1 mező)
     const bodyKeys = Object.keys(req.body);
     if (bodyKeys.length !== 1) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Csak a code mező engedélyezett.' : 'Only the code field is allowed.' });
+        throw new Error(lang === 'HU' ? 'Csak a code mező engedélyezett.' : 'Only the code field is allowed.', 400);
     }
     // #endregion
 

@@ -1,29 +1,29 @@
-import DB from '../../database/DB.js';
+import pool from '../../database/DB.js';
 import { decryptData } from '../../utilities/Encrypt.js';
 
 export async function getProfileController(req, res) {
     // #region Kapcsolat létrehozása és nyelvi beállítás lekérése
-    const lang = (req.cookies.language || 'EN').toUpperCase();
-    const conn = await DB.pool.getConnection();
+    const lang = req.lang;
+    const conn = await pool.getConnection();
     // #endregion
     // #region Adott felhasználó keresese a usertoken alapján
     const user = req.params.usertag.toLowerCase();
     const selectQuery = 'SELECT usertoken, usertag, fullname, email, mobile, gender, birthdate, publicContacts, type FROM users WHERE usertag = ?';
     const selectParams = [user];
-    const rows = await DB.use(selectQuery, selectParams);
+    const [rows] = await conn.query(selectQuery, selectParams);
     if (rows.length === 0) {
-        conn.release();
-        return res.status(404).json({ error: lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.' });
+        pool.releaseConnection(conn);
+        throw new Error([ lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.', 404 ]);
     }
     const userData = rows[0];
     // #endregion
     // #region Felhasználó aukcióinak és licitjainak megszámlálása
     const UsersAuctionsQuery = 'SELECT COUNT(*) AS auctionCount FROM auctions WHERE usertoken = ?';
     const UsersAuctionsParams = [userData.usertoken];
-    const auctionRows = await DB.use(UsersAuctionsQuery, UsersAuctionsParams);
+    const [auctionRows] = await conn.query(UsersAuctionsQuery, UsersAuctionsParams);
     const UsersBidsQuery = 'SELECT COUNT(*) AS bidCount FROM bids WHERE usertoken = ?';
     const UsersBidsParams = [userData.usertoken];
-    const bidRows = await DB.use(UsersBidsQuery, UsersBidsParams);
+    const [bidRows] = await conn.query(UsersBidsQuery, UsersBidsParams);
     // #endregion
     // #region Érzékeny adatok dekódolása
     const publicContacts = Boolean(userData.publicContacts);
@@ -50,6 +50,6 @@ export async function getProfileController(req, res) {
         resJson.bidCount = bidRows[0].bidCount;
     }
     // #endregion
-    conn.release();
+    pool.releaseConnection(conn);
     return res.status(200).json(resJson);
 }

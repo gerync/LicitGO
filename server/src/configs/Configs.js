@@ -1,13 +1,21 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import crypto from 'crypto';
 
-dotenv.config({ path: path.resolve(__dirname, './.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../') });
 
 export default {
     server: {
         port: process.env.PORT || 3000,
-        domain: process.env.DOMAIN || 'localhost'
+        domain: function() {
+            // Biztosítjuk, hogy a domain tartalmazza a portot, ha szükséges
+            let domain = process.env.DOMAIN || 'http://localhost';
+            // Hozzáadjuk a portot, ha nincs benne
+            const port = this.port;
+            if (port && !domain.includes(`:${port}`)) {
+                domain += `:${port}`;
+            }
+            return domain;
+        }
     },
     db: {
         host: process.env.DBHOST || 'localhost',
@@ -41,5 +49,13 @@ export default {
     environment: {
         nodeEnv: process.env.NODE_ENV || 'development',
         isProduction: (process.env.NODE_ENV || 'development') === 'production'
+    },
+    exchange: {
+        apiKey: process.env.EXCHANGE_API_KEY || 'API_KEY_PLACEHOLDER',
+        apiUrl: process.env.EXCHANGE_API_URL || 'https://v6.exchangerate-api.com/v6/*/latest/HUF',
+        apiFullUrl: function() {
+            // Kicseréljük a '*' helyőrzőt az API kulcsra
+            return this.apiUrl.replace('*', this.apiKey);
+        }
     }
 };

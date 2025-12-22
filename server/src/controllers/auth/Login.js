@@ -3,14 +3,13 @@ import jwt from 'jsonwebtoken';
 
 import configs from '../../configs/Configs.js';
 import { encryptData } from '../../utilities/Encrypt.js';
-import DB from '../../database/DB.js';
-import { config } from 'dotenv';
+import pool from '../../database/DB.js';
 
 // Bejelentkezés: azonosítás, jelszó ellenőrzés és sütik kiállítása
 export default async function LoginController(req, res) {
     // #region Adatbázis kapcsolat létrehozása, nyelvi beállítás, kérés paraméterek kiemelése
-    const conn = await DB.pool.getConnection();
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const conn = await pool.getConnection();
+    const lang = req.lang;
     const { identifier, password, keeplogin } = req.body;
     // #endregion
 
@@ -18,10 +17,10 @@ export default async function LoginController(req, res) {
     const selectQuery = 'SELECT usertoken, usertag, passwordhash, tfaenabled, tfasecret FROM users WHERE email = ? OR usertag = ? OR mobile = ?';
     const encryptedIdentifier = encryptData(identifier);
     const selectParams = [encryptedIdentifier, identifier, encryptedIdentifier];
-    const rows = await DB.use(selectQuery, selectParams);
+    const [rows] = await conn.query(selectQuery, selectParams);
     if (rows.length === 0) {
-        conn.release();
-        return res.status(404).json({ error: lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.' });
+        pool.releaseConnection(conn);
+        throw new Error([ lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.', 404 ]);
     }
     // #endregion
 
@@ -29,8 +28,8 @@ export default async function LoginController(req, res) {
     const passwordhash = rows[0].passwordhash;
     const validPassword = await argon.verify(passwordhash, password);
     if (!validPassword) {
-        conn.release();
-        return res.status(401).json({ error: lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.' });
+        pool.releaseConnection(conn);
+        throw new Error([ lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.', 401 ]);
     }
     // #endregion
 
@@ -39,7 +38,7 @@ export default async function LoginController(req, res) {
         const tempToken = jwt.sign({ usertoken: rows[0].usertoken, tfa_required: true }, configs.jwtSecret, {
             expiresIn: '5m',
         });
-        conn.release();
+        pool.releaseConnection(conn);
         return res.status(203).json({
             message: lang === 'HU' ? 'Kétlépcsős azonosítás szükséges.' : 'Two-factor authentication required.',
             temp_token: tempToken,
@@ -52,12 +51,12 @@ export default async function LoginController(req, res) {
     const token = jwt.sign({ usertoken: rows[0].usertoken }, configs.jwtSecret, {
         expiresIn: keeplogin ? '30d' : '1d',
     });
-     let settings = await DB.use('SELECT language, darkmode, currency FROM settings WHERE usertoken = ?', [rows[0].usertoken]);
+     let settings = await conn.query('SELECT language, darkmode, currency FROM settings WHERE usertoken = ?', [rows[0].usertoken]);
      if (settings.length === 0) {
-         await DB.use('INSERT INTO settings (usertoken) VALUES (?)', [rows[0].usertoken]);
-         settings = await DB.use('SELECT language, darkmode, currency FROM settings WHERE usertoken = ?', [rows[0].usertoken]);
+         await conn.query('INSERT INTO settings (usertoken) VALUES (?)', [rows[0].usertoken]);
+         settings = await conn.query('SELECT language, darkmode, currency FROM settings WHERE usertoken = ?', [rows[0].usertoken]);
      }
-    conn.release();
+    pool.releaseConnection(conn);
     // #endregion
 
     // #region HTTPOnly auth süti, nyelvnyelvek, sötét mód, valuta sütik beállítása keeplogin és bejelentkezett felhasználó alapján

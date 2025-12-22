@@ -5,10 +5,10 @@ import jwt from 'jsonwebtoken';
 
 export default function tempTokenMiddleware(req, res, next) {
     // #region Nyelvbeállítás és auth token lekérése
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const lang = req.lang;
     const authToken = req.cookies.auth;
     if (!authToken) {
-        return res.status(401).json({ error: lang === 'HU' ? 'Nincs ideiglenes token.' : 'No temporary token provided.' });
+        throw new Error(lang === 'HU' ? 'Nincs hitelesítési token.' : 'No authentication token provided.', 401);
     }
     // #endregion
 
@@ -16,12 +16,12 @@ export default function tempTokenMiddleware(req, res, next) {
     try {
         const decoded = jwt.verify(authToken, configs.jwtSecret);
         if (!decoded.tfa_required) {
-            return res.status(403).json({ error: lang === 'HU' ? 'Érvénytelen token típus.' : 'Invalid token type.' });
+            throw new Error(lang === 'HU' ? 'Érvénytelen token típus.' : 'Invalid token type.', 403);
         }
         req.usertoken = decoded.usertoken;
         req.decoded = decoded;
     } catch (err) {
-        return res.status(401).json({ error: lang === 'HU' ? 'Érvénytelen vagy lejárt token.' : 'Invalid or expired token.' });
+        throw new Error(lang === 'HU' ? 'Érvénytelen vagy lejárt token.' : 'Invalid or expired token.', 401);
     }
     // #endregion
 
