@@ -1,40 +1,41 @@
 import ObjectLength from "../../utilities/ObjectLength.js";
 export default function AddAuctionMiddleware(req, res, next) {
     const [ carid, startingBid, reservePrice, starttime, endtime ] = req.body;
+    const lang = req.lang;
     if (ObjectLength(req.body, 5) == -1) {
-        return res.status(400).json({ error: "Hiányzó mezők az aukció létrehozásához." });
+        throw new Error([ lang === 'HU' ? "Hiányzó mezők az aukció létrehozásához." : "Missing fields for creating the auction.", 400 ]);
     }
     if (ObjectLength(req.body, 5) == 1) {
-        return res.status(400).json({ error: "Túl sok mező van az aukció létrehozásához." });
+        throw new Error([ lang === 'HU' ? "Túl sok mező van az aukció létrehozásához." : "Too many fields for creating the auction.", 400 ]);
     }
     if (!carid || !startingBid || !reservePrice || !starttime || !endtime) {
-        return res.status(400).json({ error: "Az aukció létrehozásához minden mező kitöltése kötelező." });
+        throw new Error([ lang === 'HU' ? "Az aukció létrehozásához minden mező kitöltése kötelező." : "All fields are required to create the auction.", 400 ]);
     }
     if (isNaN(Number(carid))) {
-        return res.status(400).json({ error: "A 'carid' mezőnek numerikus értéknek kell lennie." });
+        throw new Error([ lang === 'HU' ? "A 'carid' mezőnek numerikus értéknek kell lennie." : "The 'carid' field must be a numeric value.", 400 ]);
     }
     if (isNaN(Number(startingBid))) {
-        return res.status(400).json({ error: "A 'startingBid' mezőnek numerikus értéknek kell lennie." });
+        throw new Error([ lang === 'HU' ? "A 'startingBid' mezőnek numerikus értéknek kell lennie." : "The 'startingBid' field must be a numeric value.", 400 ]);
     }
     if (isNaN(Number(reservePrice))) {
-        return res.status(400).json({ error: "A 'reservePrice' mezőnek numerikus értéknek kell lennie." });
+        throw new Error([ lang === 'HU' ? "A 'reservePrice' mezőnek numerikus értéknek kell lennie." : "The 'reservePrice' field must be a numeric value.", 400 ]);
     }
     req.body.carid = Number(carid);
     req.body.startingBid = Number(startingBid);
     req.body.reservePrice = Number(reservePrice);
     if (isNaN(Date.parse(starttime))) {
-        return res.status(400).json({ error: "A 'starttime' mezőnek érvényes dátum formátumúnak kell lennie." });
+        throw new Error([ lang === 'HU' ? "A 'starttime' mezőnek érvényes dátum formátumúnak kell lennie." : "The 'starttime' field must be a valid date format.", 400 ]);
     }
     if (isNaN(Date.parse(endtime))) {
-        return res.status(400).json({ error: "Az 'endtime' mezőnek érvényes dátum formátumúnak kell lennie." });
+        throw new Error([ lang === 'HU' ? "Az 'endtime' mezőnek érvényes dátum formátumúnak kell lennie." : "The 'endtime' field must be a valid date format.", 400 ]);
     }
     req.body.starttime = new Date(starttime);
     req.body.endtime = new Date(endtime);
     if (req.body.starttime >= req.body.endtime) {
-        return res.status(400).json({ error: "Az aukció kezdési idejének korábbinak kell lennie a befejezési időnél." });
+        throw new Error([ lang === 'HU' ? "Az aukció kezdési idejének korábbinak kell lennie a befejezési időnél." : "The auction start time must be earlier than the end time.", 400 ]);
     }
     if (req.body.starttime <= new Date()) {
-        return res.status(400).json({ error: "Az aukció kezdési idejének a jövőben kell lennie." });
+        throw new Error([ lang === 'HU' ? "Az aukció kezdési idejének a jövőben kell lennie." : "The auction start time must be in the future.", 400 ]);
     }
     next();
 }

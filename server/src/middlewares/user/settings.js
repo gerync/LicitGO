@@ -5,16 +5,16 @@ import configs from "../../configs/Configs.js";
 // Felhasználói beállítások validálása: mennyiség, típus, értékkészlet; JWT-ből usertoken kiemelése
 export default async function userSettings(req, res, next) {
     // #region Nyelvi beállítás sütiből, kérés test paraméterek kiemelése (language, darkmode, currency), legalább egy mező kötelező
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    let lang = req.lang;
     let { language, darkmode, currency } = req.body;
     if (!language && !darkmode && !currency) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Nincsenek megadva beállítások.' : 'No settings provided.' });
+        throw new Error(lang === 'HU' ? 'Nincsenek megadva beállítások.' : 'No settings provided.', 400);
     }
     // #endregion
 
     // #region Mezőszám ellenőrzés (1-3 között), nem string típusok stringgé konvertálása mentett előtt
     if (ObjectLength(req.body, 1, 3) !== 0) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen számú beállítás.' : 'Invalid number of settings.' });
+        throw new Error(lang === 'HU' ? 'Érvénytelen számú beállítás.' : 'Invalid number of settings.', 400);
     }
     if (language && typeof language !== 'string') {
         req.body.language = language.toString();
@@ -48,13 +48,14 @@ export default async function userSettings(req, res, next) {
 
     // #region Beállítások érték ellenőrzése: language (EN/HU), darkmode (true/false), currency (USD/EUR/HUF)
     if (language && ![ 'EN', 'HU' ].includes(language.toUpperCase())) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen nyelv.' : 'Invalid language.' });
+        throw new Error(lang === 'HU' ? 'Érvénytelen nyelv.' : 'Invalid language.', 400);
     }
+    lang = language ? (language.toUpperCase() === 'HU' ? 'HU' : 'EN') : lang;
     if (darkmode && darkmode !== 'true' && darkmode !== 'false') {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen sötét mód érték.' : 'Invalid dark mode value.' });
+        throw new Error(lang === 'HU' ? 'Érvénytelen sötét mód érték.' : 'Invalid dark mode value.', 400);
     }
     if (currency && !['USD', 'EUR', 'HUF' ].includes(currency.toUpperCase())) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen pénznem.' : 'Invalid currency.' });
+        throw new Error(lang === 'HU' ? 'Érvénytelen pénznem.' : 'Invalid currency.', 400);
     }
     // #endregion
 

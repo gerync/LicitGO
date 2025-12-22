@@ -4,7 +4,7 @@ import otpauth from 'otpauth';
 // Kétlépcsős azonosítás (2FA) engedélyezése vagy letiltása, tranzakcióval és biztonságos kezeléssel
 export default async function toggleTFAController(req, res) {
     // #region Kapcsolat és adatkiemelés
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const lang = req.lang;
     const { enable } = req.body; // boolean: true = engedélyezés, false = letiltás
     const conn = await pool.getConnection();
     // #endregion

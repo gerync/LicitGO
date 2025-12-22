@@ -9,7 +9,7 @@ import pool from '../../database/DB.js';
 export default async function LoginController(req, res) {
     // #region Adatbázis kapcsolat létrehozása, nyelvi beállítás, kérés paraméterek kiemelése
     const conn = await pool.getConnection();
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const lang = req.lang;
     const { identifier, password, keeplogin } = req.body;
     // #endregion
 
@@ -20,7 +20,7 @@ export default async function LoginController(req, res) {
     const [rows] = await conn.query(selectQuery, selectParams);
     if (rows.length === 0) {
         pool.releaseConnection(conn);
-        return res.status(404).json({ error: lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.' });
+        throw new Error([ lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.', 404 ]);
     }
     // #endregion
 
@@ -29,7 +29,7 @@ export default async function LoginController(req, res) {
     const validPassword = await argon.verify(passwordhash, password);
     if (!validPassword) {
         pool.releaseConnection(conn);
-        return res.status(401).json({ error: lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.' });
+        throw new Error([ lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.', 401 ]);
     }
     // #endregion
 

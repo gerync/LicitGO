@@ -6,7 +6,7 @@ import configs from '../../../configs/Configs.js';
 // Kétlépcsős azonosítás (2FA) ellenőrzése TOTP kóddal, majd teljes auth token kiállítása
 export default async function verifyTFAController(req, res) {
     // #region Kapcsolat és adatkiemelés
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const lang = req.lang;
     const { code, keeplogin } = req.body;
     const conn = await pool.getConnection();
     // #endregion
@@ -14,12 +14,12 @@ export default async function verifyTFAController(req, res) {
     const [userRows] = await conn.query('SELECT tfaenabled, tfasecret FROM users WHERE usertoken = ? LIMIT 1', [req.usertoken]);
     if (!userRows || userRows.length === 0) {
         pool.releaseConnection(conn);
-        return res.status(404).json({ error: lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.' });
+        throw new Error([ lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.', 404 ]);
     }
     const { tfaenabled, tfasecret } = userRows[0];
     if (!tfaenabled || !tfasecret) {
         pool.releaseConnection(conn);
-        return res.status(400).json({ error: lang === 'HU' ? 'A kétlépcsős azonosítás nincs engedélyezve.' : 'Two-factor authentication is not enabled.' });
+        throw new Error([ lang === 'HU' ? 'A kétlépcsős azonosítás nincs engedélyezve.' : 'Two-factor authentication is not enabled.', 400 ]);
     }
     // #endregion
 

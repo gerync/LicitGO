@@ -1,7 +1,7 @@
 import pool from '../../database/DB.js';
 
 export async function setUserSettings(req, res) {
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const lang = req.lang;
     const usertoken = req.usertoken;
     const { language, darkmode, currency } = req.body;
     const cookieBase = { maxAge: 30 * 24 * 60 * 60 * 1000, sameSite: 'lax' };
@@ -32,7 +32,7 @@ export async function setUserSettings(req, res) {
             // Ellenőrizze, hogy az update sikeres volt-e
             if (!result || result.affectedRows === 0) {
                 pool.releaseConnection(conn);
-                return res.status(500).json({ error: lang === 'HU' ? 'Az adatbázis frissítése sikertelen.' : 'Database update failed.' });
+                throw new Error([ lang === 'HU' ? 'Az adatbázis frissítése sikertelen.' : 'Database update failed.', 500 ]);
             }
         }
         pool.releaseConnection(conn);

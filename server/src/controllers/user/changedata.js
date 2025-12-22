@@ -3,7 +3,7 @@ import pool from '../../database/DB.js';
 
 export async function changeDataController(req, res) {
     // #region Kapcsolat és adatkiemelés
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const lang = req.lang;
     const conn = await pool.getConnection();
     const { usertag, fullname, mobile, gender } = req.body;
     const updates = [];
@@ -17,7 +17,7 @@ export async function changeDataController(req, res) {
         const [usertagRows] = await conn.query(usertagQuery, usertagParams);
         if (usertagRows[0].count > 0) {
             pool.releaseConnection(conn);
-            return res.status(409).json({ error: lang === 'HU' ? 'A felhasználónév már foglalt.' : 'The usertag is already taken.' });
+            throw new Error([ lang === 'HU' ? 'A felhasználónév már foglalt.' : 'The usertag is already taken.', 409 ]);
         }
         updates.push('usertag = ?');
         params.push(usertag);
@@ -40,7 +40,7 @@ export async function changeDataController(req, res) {
         const [mobileRows] = await conn.query(mobileQuery, mobileParams);
         if (mobileRows[0].count > 0) {
             pool.releaseConnection(conn);
-            return res.status(409).json({ error: lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.' });
+            throw new Error([ lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.', 409 ]);
         }
         updates.push('mobile = ?');
         params.push(encryptedMobile);
@@ -57,7 +57,7 @@ export async function changeDataController(req, res) {
     // #region Üres frissítések ellenőrzés és adatbázis művelet
     if (updates.length === 0) {
         pool.releaseConnection(conn);
-        return res.status(400).json({ error: lang === 'HU' ? 'Nincs frissítendő adat.' : 'No data to update.' });
+        throw new Error([ lang === 'HU' ? 'Nincs frissítendő adat.' : 'No data to update.', 400 ]);
     }
 
     params.push(req.usertoken);
@@ -71,7 +71,7 @@ export async function changeDataController(req, res) {
         return res.status(200).json({ message: lang === 'HU' ? 'Adatok sikeresen frissítve.' : 'Data updated successfully.' });
     }
     else {
-        return res.status(500).json({ error: lang === 'HU' ? 'Hiba történt az adatok frissítése során.' : 'An error occurred while updating data.' });
+        throw new Error([ lang === 'HU' ? 'Hiba történt az adatok frissítése során.' : 'An error occurred while updating data.', 500 ]);
     }
     // #endregion
 }

@@ -3,7 +3,7 @@ import { decryptData } from '../../utilities/Encrypt.js';
 
 export async function getProfileController(req, res) {
     // #region Kapcsolat létrehozása és nyelvi beállítás lekérése
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const lang = req.lang;
     const conn = await pool.getConnection();
     // #endregion
     // #region Adott felhasználó keresese a usertoken alapján
@@ -13,7 +13,7 @@ export async function getProfileController(req, res) {
     const [rows] = await conn.query(selectQuery, selectParams);
     if (rows.length === 0) {
         pool.releaseConnection(conn);
-        return res.status(404).json({ error: lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.' });
+        throw new Error([ lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.', 404 ]);
     }
     const userData = rows[0];
     // #endregion
