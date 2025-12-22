@@ -1,0 +1,9 @@
+[{
+    "rates": {
+        "EURUSD": 1.123456,
+        "EURHUF": 370.123456,
+        "USDHUF": 329.123456
+    },
+    "fetched_at": "2025-12-22T18:09:00Z",
+    "success": true
+}]
