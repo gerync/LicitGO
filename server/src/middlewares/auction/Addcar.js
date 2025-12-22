@@ -59,98 +59,98 @@ export default function AddCarMiddleware(req, res, next) {
         try {
             features = JSON.parse(features);
         } catch (e) {
-            return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen jellemzők formátum.' : 'Invalid features format.' });
+            throw new Error([ lang === 'HU' ? 'Érvénytelen jellemzők formátum.' : 'Invalid features format.', 400 ]);
         }
     }
     if (features !== undefined && (typeof features !== 'object' || features === null)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen jellemzők formátum.' : 'Invalid features format.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen jellemzők formátum.' : 'Invalid features format.', 400 ]);
     }
     //#endregion
 
     //#region Kötelező mezők és tartományok
     if (!manufacturer) {
-        return res.status(400).json({ error: lang === 'HU' ? 'A gyártó megadása kötelező.' : 'Manufacturer is required.' });
+        throw new Error([ lang === 'HU' ? 'A gyártó megadása kötelező.' : 'Manufacturer is required.', 400 ]);
     }
     if (manufacturer.length > 100) {
-        return res.status(400).json({ error: lang === 'HU' ? 'A gyártó neve legfeljebb 100 karakter lehet.' : 'Manufacturer must be at most 100 characters.' });
+        throw new Error([ lang === 'HU' ? 'A gyártó neve legfeljebb 100 karakter lehet.' : 'Manufacturer must be at most 100 characters.', 400 ]);
     }
     if (!model) {
-        return res.status(400).json({ error: lang === 'HU' ? 'A modell megadása kötelező.' : 'Model is required.' });
+        throw new Error([ lang === 'HU' ? 'A modell megadása kötelező.' : 'Model is required.', 400 ]);
     }
     if (model.length > 150) {
-        return res.status(400).json({ error: lang === 'HU' ? 'A modell neve legfeljebb 150 karakter lehet.' : 'Model must be at most 150 characters.' });
+        throw new Error([ lang === 'HU' ? 'A modell neve legfeljebb 150 karakter lehet.' : 'Model must be at most 150 characters.', 400 ]);
     }
     if (!color) {
-        return res.status(400).json({ error: lang === 'HU' ? 'A szín megadása kötelező.' : 'Color is required.' });
+        throw new Error([ lang === 'HU' ? 'A szín megadása kötelező.' : 'Color is required.', 400 ]);
     }
     if (color.length > 50) {
-        return res.status(400).json({ error: lang === 'HU' ? 'A szín legfeljebb 50 karakter lehet.' : 'Color must be at most 50 characters.' });
+        throw new Error([ lang === 'HU' ? 'A szín legfeljebb 50 karakter lehet.' : 'Color must be at most 50 characters.', 400 ]);
     }
     if (isNaN(odometerKM) || odometerKM < 0) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen óraállás.' : 'Invalid odometer reading.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen óraállás.' : 'Invalid odometer reading.', 400 ]);
     }
     if (isNaN(modelyear) || modelyear < 1886 || modelyear > new Date().getFullYear() + 1) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen gyártási év.' : 'Invalid model year.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen gyártási év.' : 'Invalid model year.', 400 ]);
     }
     if (isNaN(efficiency) || efficiency < 0 || efficiency >= 100) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen teljesítmény (0–99.99).' : 'Invalid efficiency (0–99.99).' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen teljesítmény (0–99.99).' : 'Invalid efficiency (0–99.99).', 400 ]);
     }
     if (isNaN(enginecapacity) || enginecapacity <= 0) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen hengerűrtartalom.' : 'Invalid engine capacity.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen hengerűrtartalom.' : 'Invalid engine capacity.', 400 ]);
     }
     if (emissionsGKM !== undefined && emissionsGKM !== null && emissionsGKM !== '' && (isNaN(emissionsGKM) || emissionsGKM < 0)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen kibocsátási érték.' : 'Invalid emissions value.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen kibocsátási érték.' : 'Invalid emissions value.', 400 ]);
     }
     if (isNaN(doors) || doors <= 0 || !Number.isInteger(doors)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen ajtók száma.' : 'Invalid number of doors.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen ajtók száma.' : 'Invalid number of doors.', 400 ]);
     }
     if (isNaN(seats) || seats <= 0 || !Number.isInteger(seats)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen ülések száma.' : 'Invalid number of seats.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen ülések száma.' : 'Invalid number of seats.', 400 ]);
     }
     if (!vin) {
-        return res.status(400).json({ error: lang === 'HU' ? 'A VIN megadása kötelező.' : 'VIN is required.' });
+        throw new Error([ lang === 'HU' ? 'A VIN megadása kötelező.' : 'VIN is required.', 400 ]);
     }
     if (vin.length !== 17 || !/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen VIN (17 karakter, I,O,Q nélkül).' : 'Invalid VIN (17 chars, excludes I,O,Q).' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen VIN (17 karakter, I,O,Q nélkül).' : 'Invalid VIN (17 chars, excludes I,O,Q).', 400 ]);
     }
     if (maxspeedKMH !== undefined && maxspeedKMH !== null && maxspeedKMH !== '' && (isNaN(maxspeedKMH) || maxspeedKMH < 0)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen végsebesség.' : 'Invalid max speed.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen végsebesség.' : 'Invalid max speed.', 400 ]);
     }
     if (zeroToHundredSec !== undefined && zeroToHundredSec !== null && zeroToHundredSec !== '' && (isNaN(zeroToHundredSec) || zeroToHundredSec < 0)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen gyorsulási idő.' : 'Invalid zero to hundred time.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen gyorsulási idő.' : 'Invalid zero to hundred time.', 400 ]);
     }
     if (weightKG !== undefined && weightKG !== null && weightKG !== '' && (isNaN(weightKG) || weightKG < 0)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen súly.' : 'Invalid weight.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen súly.' : 'Invalid weight.', 400 ]);
     }
     //#endregion
 
     //#region Enumerációk (megengedett értékek)
     if (efficiencyunit !== 'HP' && efficiencyunit !== 'kW') {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen teljesítmény egység.' : 'Invalid efficiency unit.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen teljesítmény egység.' : 'Invalid efficiency unit.', 400 ]);
     }
     if (!['gasoline', 'diesel', 'electric', 'hybrid', 'other'].includes(fueltype)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen üzemanyag típus.' : 'Invalid fuel type.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen üzemanyag típus.' : 'Invalid fuel type.', 400 ]);
     }
     if (!['manual', 'automatic', 'semi-automatic', 'CVT', 'dual-clutch', 'other'].includes(transmission)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen váltó típus.' : 'Invalid transmission type.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen váltó típus.' : 'Invalid transmission type.', 400 ]);
     }
     if (!['sedan', 'hatchback', 'SUV', 'coupe', 'convertible', 'wagon', 'van', 'truck', 'other'].includes(bodytype)) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen karosszéria típus.' : 'Invalid body type.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen karosszéria típus.' : 'Invalid body type.', 400 ]);
     }
     //#endregion
 
     //#region Opcionális mezők formátumellenőrzése
     if (features !== undefined && typeof features !== 'object') {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen jellemzők formátum.' : 'Invalid features format.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen jellemzők formátum.' : 'Invalid features format.', 400 ]);
     }
     if (factoryExtras && typeof factoryExtras !== 'string') {
-        return res.status(400).json({ error: lang === 'HU' ? 'Érvénytelen gyári extrák formátum.' : 'Invalid factory extras format.' });
+        throw new Error([ lang === 'HU' ? 'Érvénytelen gyári extrák formátum.' : 'Invalid factory extras format.', 400 ]);
     }
     if (ObjectLength(req.body, 12, 15) === 1) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Túl sok mező lett megadva.' : 'Too many fields provided.' });
+        throw new Error([ lang === 'HU' ? 'Túl sok mező lett megadva.' : 'Too many fields provided.', 400 ]);
     }
     if (ObjectLength(req.body, 12, 15) === -1) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Túl kevés mező lett megadva.' : 'Too few fields provided.' });
+        throw new Error([ lang === 'HU' ? 'Túl kevés mező lett megadva.' : 'Too few fields provided.', 400 ]);
     }
     //#endregion
     //#region Normalizált értékek visszaírása a kérésebe

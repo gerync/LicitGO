@@ -1,12 +1,12 @@
 export default function profileMiddleware(req, res, next) {
     let usertag = req.params.usertag;
-    const lang = (req.cookies.language || 'EN').toUpperCase();
+    const lang = req.lang;
 
     if (!usertag) {
         usertag = req.cookies.usertag;
     }
     if (!usertag) {
-        return res.status(400).json({ error: lang === 'HU' ? 'Hiányzó felhasználói azonosító.' : 'Missing user identifier.' });
+        throw new Error(lang === 'HU' ? 'Hiányzó felhasználói azonosító.' : 'Missing user identifier.', 400);
     }
     req.params.usertag = usertag.toLowerCase();
     next();

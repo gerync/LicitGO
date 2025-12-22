@@ -1,8 +1,10 @@
-import DB from '../../database/connection.js';
+import pool from '../../database/DB.js';
 
 export default async function AddCarController(req, res) {
     const lang = req.lang;
+    const currency = req.currency;
     const ownertoken = req.usertoken;
+    const conn = await pool.getConnection();
 
     const { manufacturer, model, odometerKM, modelyear, efficiency, efficiencyunit, 
         enginecapacity, fueltype, transmission, bodytype, color, 
@@ -11,7 +13,7 @@ export default async function AddCarController(req, res) {
 
     // Validate ownertoken
     if (!ownertoken) {
-        return res.status(401).json({ error: lang === 'HU' ? 'Bejelentkezés szükséges.' : 'Authentication required.' });
+        throw new Error([ lang === 'HU' ? 'Hiányzó tulajdonos token.' : 'Missing owner token.', 400 ]);
     }
 
     try {
@@ -55,9 +57,9 @@ export default async function AddCarController(req, res) {
             ownertoken
         ];
 
-        const result = await DB.promise().query(query, values);
+        const result = await conn.query(query, values);
         const carId = result[0].insertId;
-
+        pool.releaseConnection(conn);
         return res.status(201).json({
             success: true,
             message: lang === 'HU' ? 'Autó sikeresen hozzáadva.' : 'Car added successfully.',
@@ -65,14 +67,10 @@ export default async function AddCarController(req, res) {
         });
 
     } catch (error) {
-        console.error('Error adding car:', error);
-
-        // Handle duplicate VIN
-        if (error.code === 'ER_DUP_ENTRY') {
-            return res.status(409).json({ error: lang === 'HU' ? 'Ez a VIN már létezik.' : 'This VIN already exists.' });
+        pool.releaseConnection(conn);
+        if (error.message.includes('Duplicate entry') || error.code === 'ER_DUP_ENTRY') {
+            throw new Error([ lang === 'HU' ? 'Már létezik ilyen VIN kóddal autó.' : 'A car with this VIN already exists.', 409 ]);
         }
-
-        return res.status(500).json({ error: lang === 'HU' ? 'Hiba az autó hozzáadásakor.' : 'Error adding car.' });
+        throw error;
     }
 }
-    

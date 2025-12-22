@@ -1,10 +1,10 @@
 import { encryptData, decryptData } from '../../utilities/Encrypt.js';
-import DB from '../../database/DB.js';
+import pool from '../../database/DB.js';
 
 export async function changeDataController(req, res) {
     // #region Kapcsolat és adatkiemelés
-    const lang = (req.cookies.language || 'EN').toUpperCase();
-    const conn = await DB.pool.getConnection();
+    const lang = req.lang;
+    const conn = await pool.getConnection();
     const { usertag, fullname, mobile, gender } = req.body;
     const updates = [];
     const params = [];
@@ -14,10 +14,10 @@ export async function changeDataController(req, res) {
     if (usertag) {
         const usertagQuery = 'SELECT COUNT(*) AS count FROM users WHERE usertag = ? AND usertoken != ?';
         const usertagParams = [usertag, req.usertoken];
-        const usertagRows = await DB.use(usertagQuery, usertagParams);
+        const [usertagRows] = await conn.query(usertagQuery, usertagParams);
         if (usertagRows[0].count > 0) {
-            conn.release();
-            return res.status(409).json({ error: lang === 'HU' ? 'A felhasználónév már foglalt.' : 'The usertag is already taken.' });
+            pool.releaseConnection(conn);
+            throw new Error([ lang === 'HU' ? 'A felhasználónév már foglalt.' : 'The usertag is already taken.', 409 ]);
         }
         updates.push('usertag = ?');
         params.push(usertag);
@@ -37,10 +37,10 @@ export async function changeDataController(req, res) {
         const encryptedMobile = encryptData(mobile);
         const mobileQuery = 'SELECT COUNT(*) AS count FROM users WHERE mobile = ? AND usertoken != ?';
         const mobileParams = [encryptedMobile, req.usertoken];
-        const mobileRows = await DB.use(mobileQuery, mobileParams);
+        const [mobileRows] = await conn.query(mobileQuery, mobileParams);
         if (mobileRows[0].count > 0) {
-            conn.release();
-            return res.status(409).json({ error: lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.' });
+            pool.releaseConnection(conn);
+            throw new Error([ lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.', 409 ]);
         }
         updates.push('mobile = ?');
         params.push(encryptedMobile);
@@ -56,14 +56,14 @@ export async function changeDataController(req, res) {
 
     // #region Üres frissítések ellenőrzés és adatbázis művelet
     if (updates.length === 0) {
-        conn.release();
-        return res.status(400).json({ error: lang === 'HU' ? 'Nincs frissítendő adat.' : 'No data to update.' });
+        pool.releaseConnection(conn);
+        throw new Error([ lang === 'HU' ? 'Nincs frissítendő adat.' : 'No data to update.', 400 ]);
     }
 
     params.push(req.usertoken);
     const updateQuery = `UPDATE users SET ${updates.join(', ')} WHERE usertoken = ?`;
-    const result = await DB.use(updateQuery, params);
-    conn.release();
+    const [result] = await conn.query(updateQuery, params);
+    pool.releaseConnection(conn);
     // #endregion
 
     // #region Válasz kezelése
@@ -71,7 +71,7 @@ export async function changeDataController(req, res) {
         return res.status(200).json({ message: lang === 'HU' ? 'Adatok sikeresen frissítve.' : 'Data updated successfully.' });
     }
     else {
-        return res.status(500).json({ error: lang === 'HU' ? 'Hiba történt az adatok frissítése során.' : 'An error occurred while updating data.' });
+        throw new Error([ lang === 'HU' ? 'Hiba történt az adatok frissítése során.' : 'An error occurred while updating data.', 500 ]);
     }
     // #endregion
 }
@@ -80,12 +80,12 @@ export async function changeDataController(req, res) {
 export async function getUserData(req, res) {
     // #region Kapcsolat és adatok lekérése
     const lang = (req.cookies.language || 'EN').toUpperCase();
-    const conn = await DB.pool.getConnection();
+    const conn = await pool.getConnection();
     const usertoken = req.usertoken;
     const query = 'SELECT usertag, fullname, mobile, gender, birthdate, email FROM users WHERE usertoken = ?';
     const params = [usertoken];
-    const rows = await DB.use(query, params);
-    conn.release();
+    const [rows] = await conn.query(query, params);
+    pool.releaseConnection(conn);
     // #endregion
 
     // #region Adatok maszkolása és válasz építése
