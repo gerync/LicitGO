@@ -1,8 +1,13 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-// .env fájl betöltése
-dotenv.config({ path: path.resolve(__dirname, './.env') });
+// __dirname pótlása ES modulokban
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+
+// .env betöltése a server/.env helyről
+dotenv.config({ path: path.resolve(dirname, '../../.env') });
 
 export default {
     // #region ===== SZERVER KONFIGURÁCIÓK =====
@@ -19,6 +24,20 @@ export default {
                 domain += `:${port}`;
             }
             return domain;
+        },
+        time: {
+              timeZone: process.env.TIME_ZONE || 'Europe/Budapest',          // Közép-európai idő (CET/CEST)
+              locale: process.env.TIME_LOCALE || 'en-GB',        // Közép-európai formátum (angol)
+              dateStyle: process.env.TIME_DATE_STYLE || 'short',  // Dátum stílusa
+              timeStyle: process.env.TIME_TIME_STYLE || 'medium', // Idő stílusa
+        },
+        timeFormating: {
+            year: process.env.TIME_YEAR_FORMAT || 'numeric', // Év formátuma
+            month: process.env.TIME_MONTH_FORMAT || '2-digit', // Hónap formátuma
+            day: process.env.TIME_DAY_FORMAT || '2-digit',     // Nap formátuma
+            hour: process.env.TIME_HOUR_FORMAT || '2-digit',   // Óra formátuma
+            minute: process.env.TIME_MINUTE_FORMAT || '2-digit', // Perc formátuma
+            second: process.env.TIME_SECOND_FORMAT || '2-digit', // Másodperc formátuma
         }
     },
     // #endregion
@@ -26,7 +45,7 @@ export default {
     db: {
         host: process.env.DBHOST || 'localhost',        // MySQL szerver hosztja
         user: process.env.DBUSER || 'root',             // Adatbázis felhasználó
-        password: process.env.DBPASSWORD || '',         // Adatbázis jelszó
+        password: process.env.DBPASS || '',         // Adatbázis jelszó
         name: process.env.DBNAME || 'licitgo',          // Adatbázis neve
         port: process.env.DBPORT || 3306,               // MySQL port (alapértelmezett: 3306)
     },
@@ -56,6 +75,12 @@ export default {
                 return true;  // TLS kötelező
             }
             return false;
+        },
+        notifyOnStartup: process.env.NOTY_ON_START ? true : false, // Értesítés email küldése szerver indításkor
+        target: process.env.NOTY_TARGET || 'example@example.com', // Értesítési email cím szerver indításkor
+        alias: {
+            fromName: process.env.EMAIL_ALIAS_FROM_NAME || 'LicitGO',        // Email küldő neve
+            fromAddress: process.env.EMAIL_ALIAS_FROM_ADDRESS || 'example@example.com', // Email küldő címe
         }
     },
     // #endregion
@@ -86,7 +111,7 @@ export default {
     // #region ===== ÁRFOLYAM API KONFIGURÁCIÓK =====
     exchange: {
         apiKey: process.env.EXCHANGE_API_KEY || 'API_KEY_PLACEHOLDER',   // Árfolyam API kulcs
-        apiUrl: process.env.EXCHANGE_API_URL || 'https://v6.exchangerate-api.com/v6/*/latest/HUF', // Árfolyam API URL (* helyére az API kulcs kerül)
+        apiUrl: process.env.EXCHANGE_API_URL || 'https://v6.exchangerate-api.com/v6/*/latest/', // Árfolyam API URL (* helyére az API kulcs kerül)
         apiFullUrl: function() {
             // Kicseréli a '*' helyőrzőt az API kulcsra
             return this.apiUrl.replace('*', this.apiKey);

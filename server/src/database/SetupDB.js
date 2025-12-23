@@ -1,10 +1,15 @@
 import configs from '../configs/Configs.js';
-import generateUserToken from '../utilities/usertoken';
-import DB from '../database/DB.js';
+import crypto from 'crypto';
+import pool from '../database/DB.js';
 import argon2 from 'argon2';
 import { encryptData } from '../utilities/Encrypt.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
+
+
+function generateUserToken() {
+    return crypto.randomBytes(32).toString('hex');
+}
 
 export default async function setupDB() {
 
@@ -13,9 +18,10 @@ export default async function setupDB() {
     const __dirname = path.dirname(__filename);
     const sqlPath = path.join(__dirname, '..', '..', 'setup.sql');
     const sql = await fs.readFile(sqlPath, 'utf8');
-    await DB.use(sql);
+    // Több utasítás futtatásához query-t használunk (multipleStatements engedélyezve a poolban)
+    await pool.query(sql);
     
-    const [rows] = await DB.use('SELECT COUNT(*) AS count FROM users WHERE type = ?', ['superadmin']);
+    const [rows] = await pool.query('SELECT COUNT(*) AS count FROM users WHERE type = ?', ['superadmin']);
     if (rows[0].count === 0) {
         const usertoken = generateUserToken();
         const { usertag, email, password, fullname, gender, birthdate, mobile } = configs.baseadmin;
@@ -28,7 +34,7 @@ export default async function setupDB() {
             fullname, gender, birthdate, mobile, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const params = [usertoken, usertag, passwordhash, encryptedEmail,
             encryptedFullname, gender === 'male' ? 1 : 0, birthdate, encryptedMobile, 'superadmin'];
-        await DB.use(insertQuery, params);
+        await pool.execute(insertQuery, params);
         console.log(`Superadmin created with details: \n
             Usertag: ${usertag} \n
             Email: ${email} \n

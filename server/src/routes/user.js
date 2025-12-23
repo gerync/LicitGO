@@ -8,16 +8,16 @@ import { getRateLimitHandler } from '../utilities/RateLimitMessages.js';
 import isLoggedIn from '../middlewares/auth/isLoggedIn.js';
 
 import changeDataMiddleware from '../middlewares/user/changedata.js';
-import ChangeDataController from '../controllers/user/changedata.js';
+import { changeDataController } from '../controllers/user/changedata.js';
 
 import userSettingsMiddleware from '../middlewares/user/settings.js';
-import UserSettingsController from '../controllers/user/settings.js';
+import { setUserSettings } from '../controllers/user/settings.js';
 
 import toggleTFAMiddleware from '../middlewares/user/tfa/toggle.js';
 import ToggleTFAController from '../controllers/user/tfa/toggle.js';
 
 import profileMiddleware from '../middlewares/user/profile.js';
-import ProfileController from '../controllers/user/profile.js';
+import { getProfileController } from '../controllers/user/profile.js';
 // #endregion
 const RL = {
     changeData: RateLimit({
@@ -46,16 +46,16 @@ const RL = {
 const router = express.Router();
 
 // #region Felhasználói adatok módosítása
-router.put('/changedata', [isLoggedIn, RL.changeData, changeDataMiddleware], ChangeDataController);
+router.put('/changedata', [isLoggedIn, RL.changeData, changeDataMiddleware], changeDataController);
 // #endregion
 // #region Felhasználói beállítások módosítása
-router.put('/settings', [RL.userSettings, userSettingsMiddleware], UserSettingsController);
+router.put('/settings', [RL.userSettings, userSettingsMiddleware], setUserSettings);
 // #endregion
 // #region Kétlépcsős azonosítás toggle
 router.post('/tfa/toggle', [isLoggedIn, RL.toggleTFA, toggleTFAMiddleware], ToggleTFAController);
 // #endregion
 // #region Felhasználói profil lekérése
-router.get('/profile/:usertag', [RL.profile, profileMiddleware], ProfileController);
+router.get('/profile/:usertag', [RL.profile, profileMiddleware], getProfileController);
 // #endregion
 
 export default router;

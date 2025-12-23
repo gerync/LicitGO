@@ -1,5 +1,5 @@
 import pool from '../../../database/DB.js';
-import otpauth from 'otpauth';
+import * as otpauth from 'otpauth';
 import jwt from 'jsonwebtoken';
 import configs from '../../../configs/Configs.js';
 

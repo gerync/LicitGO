@@ -17,6 +17,8 @@ import authRoutes from './routes/auth.js';
 import userRoutes from './routes/user.js';
 import auctionRoutes from './routes/auction.js';
 
+import Email from './email/send.js';
+
 // #endregion
 // #region Szerver inicializálása és middleware-ek beállítása
 const app = express();
@@ -30,7 +32,7 @@ app.use(express.json());
 
 
 
-app.use(cookieMiddleware());
+app.use(cookieMiddleware);
 // #endregion
 
 // #region API útvonalak beállítása
@@ -49,6 +51,7 @@ app.use(errorHandler);
 const PORT = configs.server.port
 app.listen(PORT, async () => {
     await setup();
+    await Email();
     console.log(`Server started on port ${PORT}`);
 });
 // #endregion

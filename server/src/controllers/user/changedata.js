@@ -123,3 +123,8 @@ export async function getUserData(req, res) {
     }
     // #endregion
 }
+
+export default {
+    changeDataController,
+    getUserData,
+};
