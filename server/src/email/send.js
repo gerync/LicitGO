@@ -1,7 +1,8 @@
 import Configs from "../configs/Configs.js";
 import nodemailer from "nodemailer";
+import generateEmailBody from "./body.js";
 // Email küldő transporter létrehozása nodemailer-rel
-const emailTransporter = nodemailer.createTransport({
+export const emailTransporter = nodemailer.createTransport({
     host: Configs.email.host,
     port: Configs.email.port,
     secure: Configs.email.secure(), // true for 465, false for other ports
@@ -12,28 +13,14 @@ const emailTransporter = nodemailer.createTransport({
     }
 });
 
-export default async function sendTestEmailOnStartup() {
-    if (Configs.email.notifyOnStartup === true) {
-        try {
-            const locale = Configs.server.time.locale;
-            const timeZone = Configs.server.time.timeZone;
-            const now = new Intl.DateTimeFormat(locale, {
-                timeZone,
-                dateStyle: Configs.server.time.dateStyle,
-                timeStyle: Configs.server.time.timeStyle,
-            }).format(new Date());
-            // Teszt email küldése a konfigurált címre
-            const info = await emailTransporter.sendMail({
-                from: `${Configs.email.alias.fromName} <${Configs.email.alias.fromAddress}>`,
-                to: Configs.email.target,
-                subject: `LicitGO Server Started at ${now}`,
-                text: "The LicitGO server has started successfully and the email configuration is working.",
-            });
-            console.log(`${now}\n`)
-            console.log("Test email sent: %s", info.messageId);
-        }
-        catch (error) {
-            console.error("Error sending test email on startup:", error);
-        }
-    }
+
+
+export async function sendEmail(to, subject, info, type, lang) {
+    const mailOptions = {
+        from: `${Configs.email.alias.fromName} <${Configs.email.alias.fromAddress}>`,
+        to: to,
+        subject: subject,
+        html: generateEmailBody(type, lang, info),
+    };
+    return await emailTransporter.sendMail(mailOptions);
 }
