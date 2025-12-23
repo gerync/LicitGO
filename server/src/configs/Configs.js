@@ -25,6 +25,8 @@ export default {
             }
             return domain;
         },
+        defaultLanguage: process.env.DEFAULT_LANG || 'HU', // Alapértelmezett nyelv
+        // Időzóna és lokalizáció beállítások
         time: {
               timeZone: process.env.TIME_ZONE || 'Europe/Budapest',          // Közép-európai idő (CET/CEST)
               locale: process.env.TIME_LOCALE || 'en-GB',        // Közép-európai formátum (angol)

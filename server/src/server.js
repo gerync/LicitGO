@@ -17,7 +17,7 @@ import authRoutes from './routes/auth.js';
 import userRoutes from './routes/user.js';
 import auctionRoutes from './routes/auction.js';
 
-import Email from './email/send.js';
+import startupEmail from './email/startup.js';
 
 // #endregion
 // #region Szerver inicializálása és middleware-ek beállítása
@@ -51,7 +51,11 @@ app.use(errorHandler);
 const PORT = configs.server.port
 app.listen(PORT, async () => {
     await setup();
-    await Email();
-    console.log(`Server started on port ${PORT}`);
+    await startupEmail();
+    if (configs.server.defaultLanguage.toUpperCase() === 'HU') {
+        console.log(`Szerver elindult a(z) ${PORT} porton`);
+    } else {
+        console.log(`Server started on port ${PORT}`);
+    }
 });
 // #endregion
