@@ -53,3 +53,7 @@ export async function getProfileController(req, res) {
     pool.releaseConnection(conn);
     return res.status(200).json(resJson);
 }
+
+export default {
+    getProfileController,
+};

@@ -1,5 +1,5 @@
 import pool from '../../../database/DB.js';
-import otpauth from 'otpauth';
+import * as otpauth from 'otpauth';
 
 // Kétlépcsős azonosítás (2FA) engedélyezése vagy letiltása, tranzakcióval és biztonságos kezeléssel
 export default async function toggleTFAController(req, res) {

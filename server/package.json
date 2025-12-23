@@ -1,7 +1,7 @@
 {
-  "name": "licitgo-backend",
+  "name": "licitgo_server",
   "version": "3.0.0",
-  "description": "Backend for LicitGO website",
+  "description": "Server of LicitGO website",
   "main": "src/server.js",
   "type": "module",
   "scripts": {

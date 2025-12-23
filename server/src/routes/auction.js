@@ -3,7 +3,7 @@ import express from 'express';
 import RateLimit from 'express-rate-limit';
 // #endregion
 // #region Köztes rétegek és vezérlők importálása
-import AuthMiddleware from '../middlewares/AuthMiddleware.js';
+import AuthMiddleware from '../middlewares/auth/isLoggedIn.js';
 
 import AddCarController from '../controllers/auction/Addcar.js';
 import AddCarMiddleware from '../middlewares/auction/AddCar.js';
@@ -33,3 +33,5 @@ const RL = {
 router.post('/addcar', [AuthMiddleware, RL.addCar, AddCarMiddleware], AddCarController);
 
 router.post('/addauction', [AuthMiddleware, RL.addAuction, AddauctionMiddleware], AddauctionController);
+
+export default router;
