@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// __dirname pótlása ES modulokban
+// dirname pótlása ES modulokban
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
@@ -20,7 +20,7 @@ export default {
             let domain = process.env.DOMAIN || 'http://localhost';
             // Hozzáadjuk a portot, ha nincs benne
             const port = this.port;
-            if (port && !domain.includes(`:${port}`)) {
+            if (port && !domain.includes(`:${port}`) && domain.includes('localhost')) {
                 domain += `:${port}`;
             }
             return domain;

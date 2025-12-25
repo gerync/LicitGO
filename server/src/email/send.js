@@ -15,7 +15,7 @@ export const emailTransporter = nodemailer.createTransport({
 
 
 
-export async function sendEmail(to, subject, info, type, lang) {
+export default async function sendEmail(to, subject, info, type, lang) {
     const mailOptions = {
         from: `${Configs.email.alias.fromName} <${Configs.email.alias.fromAddress}>`,
         to: to,

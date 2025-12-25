@@ -18,12 +18,13 @@ import userRoutes from './routes/user.js';
 import auctionRoutes from './routes/auction.js';
 
 import startupEmail from './email/startup.js';
+import Configs from './configs/Configs.js';
 
 // #endregion
 // #region Szerver inicializálása és middleware-ek beállítása
 const app = express();
 const corsOptions = {
-    origin: configs.server.domain ? [configs.server.domain] : true,
+    origin: [configs.server.domain()],
     credentials: true,
 };
 app.use(cors(corsOptions));
@@ -53,9 +54,9 @@ app.listen(PORT, async () => {
     await setup();
     await startupEmail();
     if (configs.server.defaultLanguage.toUpperCase() === 'HU') {
-        console.log(`Szerver elindult a(z) ${PORT} porton`);
+        console.log(`Szerver elérhető ${Configs.server.domain()} a ${PORT} porton`);
     } else {
-        console.log(`Server started on port ${PORT}`);
+        console.log(`Server is running at ${Configs.server.domain()} on port ${PORT}`);
     }
 });
 // #endregion
