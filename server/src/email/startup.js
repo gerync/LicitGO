@@ -24,11 +24,11 @@ export async function sendTestEmailOnStartup() {
                 second: Configs.server.timeFormating.second,
             }).format(new Date());
             // Teszt email küldése a konfigurált címre
-            const notification = await emailTransporter.sendMail({
+            await emailTransporter.sendMail({
                 from: `${Configs.email.alias.fromName} <${Configs.email.alias.fromAddress}>`,
                 to: Configs.email.target,
                 
-                html: generateEmailBody('startup-notification', Configs.server.defaultLanguage, { time: now }),
+                html: generateEmailBody('startup-notification', Configs.server.defaultLanguage, { time: now, domain: Configs.server.domain() }),
             });
             if (Configs.server.defaultLanguage.toUpperCase() === 'HU') {
                 console.log(`${nowDetailed} - Szerver indítási értesítő email sikeresen elküldve`);
@@ -55,3 +55,5 @@ export async function sendTestEmailOnStartup() {
         }
     }
 }
+
+export default sendTestEmailOnStartup;
