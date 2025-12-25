@@ -2,7 +2,7 @@ import argon from 'argon2';
 import jwt from 'jsonwebtoken';
 
 import configs from '../../configs/Configs.js';
-import { encryptData } from '../../utilities/Encrypt.js';
+import { encryptData, decryptData } from '../../utilities/Encrypt.js';
 import pool from '../../database/DB.js';
 
 // Bejelentkezés: azonosítás, jelszó ellenőrzés és sütik kiállítása
@@ -14,10 +14,11 @@ export default async function LoginController(req, res) {
     // #endregion
 
     // #region Felhasználó adaténak keresése (usertoken, jelszóhash) az azonosító alapján (email/usertag/mobil)
-    const selectQuery = 'SELECT usertoken, usertag, passwordhash, tfaenabled, tfasecret FROM users WHERE email = ? OR usertag = ? OR mobile = ?';
+    const selectQuery = 'SELECT usertoken, usertag, passwordhash, tfa.enabled as tfaenabled, tfa.secret as tfasecret FROM users INNER JOIN tfa ON users.usertoken = tfa.usertoken WHERE email = ? OR usertag = ? OR mobile = ?';
     const encryptedIdentifier = encryptData(identifier);
     const selectParams = [encryptedIdentifier, identifier, encryptedIdentifier];
-    const [rows] = await conn.query(selectQuery, selectParams);
+    let [rows] = await conn.query(selectQuery, selectParams);
+    // Hibás azonosító esetén hiba visszaadása
     if (rows.length === 0) {
         pool.releaseConnection(conn);
         throw new Error([ lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.', 404 ]);
@@ -32,7 +33,7 @@ export default async function LoginController(req, res) {
         throw new Error([ lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.', 401 ]);
     }
     // #endregion
-
+    rows[0].usertoken = decryptData(rows[0].usertoken);
     // #region Kétlépcsős azonosítás ellenőrzése - ha engedélyezve van, 2FA kód szükséges
     if (rows[0].tfaenabled) {
         const tempToken = jwt.sign({ usertoken: rows[0].usertoken, tfa_required: true }, configs.jwtSecret, {
@@ -45,7 +46,6 @@ export default async function LoginController(req, res) {
         });
     }
     // #endregion
-
     // #region JWT token létrehozása (keeplogin alapján 30 vagy 1 nap lejárattal), felhasználói beállítások lekérése vagy létrehozása
     // Normal login flow - 2FA not enabled
     const token = jwt.sign({ usertoken: rows[0].usertoken }, configs.jwtSecret, {

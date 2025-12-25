@@ -3,23 +3,12 @@ import crypto from 'crypto';
 import pool from '../database/DB.js';
 import argon2 from 'argon2';
 import { encryptData } from '../utilities/Encrypt.js';
-import { fileURLToPath } from 'url';
-import path from 'path';
-
 
 function generateUserToken() {
-    return crypto.randomBytes(32).toString('hex');
+    return crypto.randomBytes(64).toString('hex');
 }
 
 export default async function setupDB() {
-
-    const fs = await import('fs/promises');
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const sqlPath = path.join(__dirname, '..', '..', 'setup.sql');
-    const sql = await fs.readFile(sqlPath, 'utf8');
-    // Több utasítás futtatásához query-t használunk (multipleStatements engedélyezve a poolban)
-    await pool.query(sql);
     
     const [rows] = await pool.query('SELECT COUNT(*) AS count FROM users WHERE type = ?', ['superadmin']);
     if (rows[0].count === 0) {
@@ -29,21 +18,36 @@ export default async function setupDB() {
         const encryptedEmail = encryptData(email);
         const encryptedFullname = encryptData(fullname);
         const encryptedMobile = encryptData(mobile);
+        const encryptedToken = encryptData(usertoken);
         const insertQuery = `
             INSERT INTO users (usertoken, usertag, passwordhash, email, 
             fullname, gender, birthdate, mobile, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        const params = [usertoken, usertag, passwordhash, encryptedEmail,
+        const params = [encryptedToken, usertag, passwordhash, encryptedEmail,
             encryptedFullname, gender === 'male' ? 1 : 0, birthdate, encryptedMobile, 'superadmin'];
         await pool.execute(insertQuery, params);
-        console.log(`Superadmin created with details: \n
+        if (configs.server.defaultLanguage === 'EN') {
+            console.log(`Superadmin created with details: \n
             Usertag: ${usertag} \n
             Email: ${email} \n
             Fullname: ${fullname} \n
             Password: ${password} \n
             Mobile: ${mobile} \n
-            
+            \n
             Please keep these credentials safe. \n
             Please change the password after first login.
         `);
+        } 
+        else {
+            console.log(`Superadmin létrehozva a következő adatokkal: \n
+            Felhasználónév: ${usertag} \n
+            Email: ${email} \n
+            Teljes név: ${fullname} \n
+            Jelszó: ${password} \n
+            Mobil: ${mobile} \n
+            \n
+            Kérjük, őrizze meg ezeket az adatokat biztonságban. \n
+            Kérjük, jelentkezzen be és változtassa meg a jelszavát.
+        `);
+        }
     }
 }
