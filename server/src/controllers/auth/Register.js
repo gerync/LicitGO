@@ -24,6 +24,7 @@ export default async function RegisterController(req, res) {
     // #region Adatbázis lekérdezés: email, felhasználónév, telefonszám egyediségének ellenőrzése, hibák visszaadása
     const insertQuery = 'INSERT INTO users (usertag, passwordhash, email, fullname, mobile, gender, birthdate, usertoken) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
     let usertoken = crypto.randomBytes(32).toString('hex');
+    usertoken = encryptData(usertoken);
     const params = [usertag, passwordhash, encryptedEmail, encryptedFullname, encryptedMobile, gender, birthdate, usertoken];
     try {
         await conn.query(insertQuery, params);
@@ -47,6 +48,7 @@ export default async function RegisterController(req, res) {
                 while (!isInserted) {
                     try {
                         usertoken = crypto.randomBytes(32).toString('hex');
+                        usertoken = encryptData(usertoken);
                         const retryParams = [usertag, passwordhash, encryptedEmail, encryptedFullname, encryptedMobile, gender, birthdate, usertoken];
                         await conn.query(insertQuery, retryParams);
                         isInserted = true;

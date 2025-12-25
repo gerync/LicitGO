@@ -7,7 +7,10 @@
   "scripts": {
     "test": "jest"
   },
-  "keywords": [ "licitgo", "backend" ],
+  "keywords": [
+    "licitgo",
+    "backend"
+  ],
   "author": "gerynch",
   "license": "ISC",
   "dependencies": {
@@ -22,7 +25,6 @@
     "mysql2": "^3.15.3",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.10",
-    "otpauth": "^9.4.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
