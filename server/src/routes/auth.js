@@ -10,10 +10,6 @@ import LoginMiddleware from '../middlewares/auth/Login.js';
 
 import Logout from '../controllers/auth/Logout.js';
 
-import verifyTFAController from '../controllers/user/tfa/verify.js';
-import verifyTFAMiddleware from '../middlewares/user/tfa/verify.js';
-import tempTokenMiddleware from '../middlewares/auth/tempToken.js';
-
 import { getRateLimitHandler } from '../utilities/RateLimitMessages.js';
 // ##endregion
 // #region Router létrehozása
@@ -31,11 +27,6 @@ const RL = {
         windowMs: 15 * 60 * 1000, // 15 perc
         max: 10, // IP-nként 10 kérés
         handler: getRateLimitHandler('login')
-    }),
-    verifyTFA: rateLimit({
-        windowMs: 15 * 60 * 1000, // 15 perc
-        max: 10, // IP-nként 10 kérés
-        handler: getRateLimitHandler('verifyTFA')
     })
 };
 // #endregion
@@ -46,8 +37,6 @@ router.post('/register', RL.register, RegisterMiddleware, RegisterController);
 router.post('/login', RL.login, LoginMiddleware, LoginController);
 
 router.post('/logout', Logout);
-
-router.post('/verify-2fa', [tempTokenMiddleware, RL.verifyTFA, verifyTFAMiddleware], verifyTFAController);
 // #endregion
 
 export default router;

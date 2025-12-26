@@ -1,4 +1,5 @@
 import { encryptData, decryptData } from '../../utilities/Encrypt.js';
+import { hashEmail, hashMobile } from '../../utilities/Hash.js';
 import pool from '../../database/DB.js';
 
 export async function changeDataController(req, res) {
@@ -34,16 +35,15 @@ export async function changeDataController(req, res) {
 
     // #region Telefonszám titkosítás és egyediség ellenőrzés
     if (mobile) {
-        const encryptedMobile = encryptData(mobile);
-        const mobileQuery = 'SELECT COUNT(*) AS count FROM users WHERE mobile = ? AND usertoken != ?';
-        const mobileParams = [encryptedMobile, req.usertoken];
-        const [mobileRows] = await conn.query(mobileQuery, mobileParams);
+        const mobileHash = hashMobile(mobile);
+        const [mobileRows] = await conn.query('SELECT COUNT(*) AS count FROM users WHERE mobile_hash = ? AND usertoken != ?', [mobileHash, req.usertoken]);
         if (mobileRows[0].count > 0) {
             pool.releaseConnection(conn);
             throw new Error([ lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.', 409 ]);
         }
-        updates.push('mobile = ?');
-        params.push(encryptedMobile);
+        const encryptedMobile = encryptData(mobile);
+        updates.push('mobile = ?, mobile_hash = ?');
+        params.push(encryptedMobile, mobileHash);
     }
     // #endregion
 
@@ -123,3 +123,8 @@ export async function getUserData(req, res) {
     }
     // #endregion
 }
+
+export default {
+    changeDataController,
+    getUserData,
+};

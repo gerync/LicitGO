@@ -1,5 +1,6 @@
 import configs from '../../configs/Configs.js';
 import jwt from 'jsonwebtoken';
+import { decryptData } from '../../utilities/Encrypt.js';
 
 // Hitelesítési middleware: JWT dekódolás, lejárat ellenőrzés, usertoken továbbítása a következő lépéseknek
 export default function isLoggedIn(req, res, next) {
@@ -23,7 +24,7 @@ export default function isLoggedIn(req, res, next) {
             throw new Error([ lang === 'HU' ? 'Kétlépcsős azonosítás verifikációja szükséges.' : 'Two-factor authentication verification required.', 401 ]);
         }
 
-        req.usertoken = decoded.usertoken;
+        req.usertoken = decryptData(decoded.usertoken);
         req.user = decoded;
         req.lang = lang;
     } catch (err) {
