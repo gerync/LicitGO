@@ -18,10 +18,10 @@ export async function getProfileController(req, res) {
     const userData = rows[0];
     // #endregion
     // #region Felhasználó aukcióinak és licitjainak megszámlálása
-    const UsersAuctionsQuery = 'SELECT COUNT(*) AS auctionCount FROM auctions WHERE usertoken = ?';
+    const UsersAuctionsQuery = 'SELECT COUNT(*) AS auctionCount FROM auctions INNER JOIN cars ON auctions.carid = cars.id WHERE cars.ownertoken = ?';
     const UsersAuctionsParams = [userData.usertoken];
     const [auctionRows] = await conn.query(UsersAuctionsQuery, UsersAuctionsParams);
-    const UsersBidsQuery = 'SELECT COUNT(*) AS bidCount FROM bids WHERE usertoken = ?';
+    const UsersBidsQuery = 'SELECT COUNT(*) AS bidCount FROM bids WHERE bidder = ?';
     const UsersBidsParams = [userData.usertoken];
     const [bidRows] = await conn.query(UsersBidsQuery, UsersBidsParams);
     // #endregion

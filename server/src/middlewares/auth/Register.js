@@ -74,8 +74,8 @@ export default function RegisterMiddleware(req, res, next) {
     }
     // #endregion
 
-    // #region Mezőszám ellenőrzés (pontosan 9 kötelező), ObjectLength használatával
-    if (ObjectLength(req.body, 9) !== 0) {
+    // #region Mezőszám ellenőrzés (8 kötelező), ObjectLength használatával
+    if (ObjectLength(req.body, 8) !== 0) {
         throw new Error([ lang === 'HU' ? 'Érvénytelen mezők száma.' : 'Invalid number of fields.', 400 ]);
     }
     // #endregion

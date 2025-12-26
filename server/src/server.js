@@ -2,11 +2,13 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 // #endregion
 
 // #region Middleware importok
 import cookieMiddleware from './middlewares/general/cookies.js';
 import errorHandler from './middlewares/general/error.js';
+import swaggerSpec from './swagger.js';
 // #endregion
 
 // #region Adatbázis és útvonal importok
@@ -34,6 +36,19 @@ app.use(express.json());
 
 
 app.use(cookieMiddleware);
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    swaggerOptions: {
+        persistAuthorization: true,
+        // Ensure Swagger "Try it out" sends/receives cookies when CORS is enabled
+        requestInterceptor: (req) => {
+            req.credentials = 'include';
+            return req;
+        },
+    },
+}));
+app.get('/docs.json', (req, res) => res.status(200).json(swaggerSpec));
 // #endregion
 
 // #region API útvonalak beállítása

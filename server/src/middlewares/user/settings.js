@@ -51,7 +51,7 @@ export default async function userSettings(req, res, next) {
         throw new Error(lang === 'HU' ? 'Érvénytelen nyelv.' : 'Invalid language.', 400);
     }
     lang = language ? (language.toUpperCase() === 'HU' ? 'HU' : 'EN') : lang;
-    if (darkmode && darkmode !== 'true' && darkmode !== 'false') {
+    if (darkmode && darkmode !== 'true' && darkmode !== 'false' && darkmode !== true && darkmode !== false) {
         throw new Error(lang === 'HU' ? 'Érvénytelen sötét mód érték.' : 'Invalid dark mode value.', 400);
     }
     if (currency && !['USD', 'EUR', 'HUF' ].includes(currency.toUpperCase())) {

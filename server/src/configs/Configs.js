@@ -118,6 +118,11 @@ export default {
             // Kicseréli a '*' helyőrzőt az API kulcsra
             return this.apiUrl.replace('*', this.apiKey);
         }
+    },
+    // #endregion
+    // #region ===== JELSZÓ VISSZAÁLLÍTÁS KONFIGURÁCIÓK =====
+    passwordReset: {
+        expiryMinutes: parseInt(process.env.PW_RESET_EXP_MINS) || 10 // Jelszó visszaállító kód érvényességi ideje percben
     }
     // #endregion
 };
