@@ -11,6 +11,7 @@ const style = {
         border-radius: 8px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         text-align: center;
+        justify-content: center;
     `,
     header: `
         font-size: 24px;
@@ -29,11 +30,12 @@ const style = {
     code: `
         font-family: 'Courier New', monospace;
         background-color: #222222;
-        padding: 2px 4px;
-        border-radius: 4px;
+        padding: 8px 14px;
+        border-radius: 6px;
         color: #00ff00;
-        display: inline-block;
-        margin: 10px 0;
+        display: block;
+        width: max-content;
+        margin: 12px auto;
         font-size: 18px;
         text-align: center;
     `,
@@ -42,6 +44,7 @@ const style = {
         line-height: 1.5;
         margin-bottom: 20px;
         text-align: left;
+        justify-content: center;
     `,
     link: `
         color: #00ffff;
