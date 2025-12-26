@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS emailcodes (
     usertoken VARCHAR(512) NOT NULL,
     code VARCHAR(10) NOT NULL,
     expiresat DATETIME NOT NULL,
-    type ENUM('verification', 'password_reset', 'email-change') NOT NULL,
+    type ENUM('verification', 'password-reset', 'email-change') NOT NULL,
     used BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (usertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
