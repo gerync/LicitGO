@@ -9,7 +9,7 @@ export default {
         lowercase: /^(?=.*[a-z]).{8,32}$/, // legalább egy kisbetű
         uppercase: /^(?=.*[A-Z]).{8,32}$/, // legalább egy nagybetű
         digit: /^(?=.*\d).{8,32}$/, // legalább egy szám
-        special: /^(?=.*[!@#$%^&*]).{8,32}$/, // legalább egy speciális karakter
+        special: /^(?=.*[!@#$%^&*_\-\(\)]).{8,32}$/, // legalább egy speciális karakter
     },
     fullname: /^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄČĆĘÈÉÊËĖĮÌÍÎÏŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ ,.'-]{2,72}$/, // nevek különféle ékezetes karakterekkel, 2-72 karakter
     date: /^(\d{4}|\d{1,2})([\-\/\.])(\d{1,2})\2(\d{4}|\d{1,2})$/ // dátum formátum: YYYY-MM-DD vagy DD-MM-YYYY, elválasztó lehet -, / vagy .

@@ -2,11 +2,13 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import swaggerUi from 'swagger-ui-express';
 // #endregion
 
 // #region Middleware importok
 import cookieMiddleware from './middlewares/general/cookies.js';
 import errorHandler from './middlewares/general/error.js';
+import swaggerSpec from './swagger.js';
 // #endregion
 
 // #region Adatbázis és útvonal importok
@@ -17,11 +19,14 @@ import authRoutes from './routes/auth.js';
 import userRoutes from './routes/user.js';
 import auctionRoutes from './routes/auction.js';
 
+import startupEmail from './email/startup.js';
+import Configs from './configs/Configs.js';
+
 // #endregion
 // #region Szerver inicializálása és middleware-ek beállítása
 const app = express();
 const corsOptions = {
-    origin: configs.server.domain ? [configs.server.domain] : true,
+    origin: [configs.server.domain()],
     credentials: true,
 };
 app.use(cors(corsOptions));
@@ -30,7 +35,20 @@ app.use(express.json());
 
 
 
-app.use(cookieMiddleware());
+app.use(cookieMiddleware);
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    explorer: true,
+    swaggerOptions: {
+        persistAuthorization: true,
+        // Ensure Swagger "Try it out" sends/receives cookies when CORS is enabled
+        requestInterceptor: (req) => {
+            req.credentials = 'include';
+            return req;
+        },
+    },
+}));
+app.get('/docs.json', (req, res) => res.status(200).json(swaggerSpec));
 // #endregion
 
 // #region API útvonalak beállítása
@@ -49,6 +67,11 @@ app.use(errorHandler);
 const PORT = configs.server.port
 app.listen(PORT, async () => {
     await setup();
-    console.log(`Server started on port ${PORT}`);
+    await startupEmail();
+    if (configs.server.defaultLanguage.toUpperCase() === 'HU') {
+        console.log(`Szerver elérhető ${Configs.server.domain()} a ${PORT} porton`);
+    } else {
+        console.log(`Server is running at ${Configs.server.domain()} on port ${PORT}`);
+    }
 });
 // #endregion

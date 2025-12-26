@@ -4,25 +4,33 @@ DEFAULT COLLATE utf8_hungarian_ci;
 USE licitgo;
 
 CREATE TABLE IF NOT EXISTS users (
-    usertoken VARCHAR(64) PRIMARY KEY NOT NULL UNIQUE,
+    usertoken VARCHAR(512) PRIMARY KEY NOT NULL UNIQUE,
     usertag VARCHAR(32) NOT NULL UNIQUE,
     passwordhash VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
+    email_hash VARCHAR(64) NOT NULL UNIQUE,
     fullname VARCHAR(255) NOT NULL,
     mobile VARCHAR(255) NOT NULL UNIQUE,
+    mobile_hash VARCHAR(64) NOT NULL UNIQUE,
     gender VARCHAR(10) NOT NULL,
     birthdate DATE NOT NULL,
     type ENUM('unverified', 'verified', 'admin', 'superadmin', 'suspended', 'banned', 'deleted') DEFAULT 'unverified' NOT NULL,
     createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     lastlogin DATETIME,
-    tfaenabled BOOLEAN DEFAULT FALSE,
-    tfasecret VARCHAR(255) DEFAULT NULL,
-    tfabackups TEXT DEFAULT NULL,
-    publicContacts BOOLEAN DEFAULT TRUE
+    publicContacts BOOLEAN DEFAULT TRUE,
+    INDEX idx_email_hash (email_hash),
+    INDEX idx_mobile_hash (mobile_hash)
+);
+CREATE TABLE IF NOT EXISTS tfa (
+    usertoken VARCHAR(512) PRIMARY KEY NOT NULL UNIQUE,
+    secret VARCHAR(255) NOT NULL,
+    enabled BOOLEAN DEFAULT FALSE,
+    backupcodes TEXT,
+    FOREIGN KEY (usertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS profpics (
-    usertoken VARCHAR(64) NOT NULL UNIQUE PRIMARY KEY,
+    usertoken VARCHAR(512) NOT NULL UNIQUE PRIMARY KEY,
     filename VARCHAR(255) NOT NULL,
     FOREIGN KEY (usertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
@@ -48,8 +56,8 @@ CREATE TABLE IF NOT EXISTS cars (
     zeroToHundredSec FLOAT,
     weightKG INT,
     factoryExtras TEXT,
-    features JSON,
-    ownertoken VARCHAR(64) NOT NULL,
+    features TEXT,
+    ownertoken VARCHAR(512) NOT NULL,
     FOREIGN KEY (ownertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
 
@@ -61,7 +69,7 @@ CREATE TABLE IF NOT EXISTS auctions (
     starttime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     endtime DATETIME NOT NULL,
     status ENUM('upcoming', 'active', 'completed', 'cancelled') DEFAULT 'active' NOT NULL,
-    winner VARCHAR(64),
+    winner VARCHAR(512),
     FOREIGN KEY (carid) REFERENCES cars(id) ON DELETE CASCADE,
     FOREIGN KEY (winner) REFERENCES users(usertoken) ON DELETE SET NULL
 );
@@ -69,7 +77,7 @@ CREATE TABLE IF NOT EXISTS auctions (
 CREATE TABLE IF NOT EXISTS bids (
     id INT AUTO_INCREMENT PRIMARY KEY,
     auctionid INT NOT NULL,
-    bidder VARCHAR(64) NOT NULL,
+    bidder VARCHAR(512) NOT NULL,
     bidamountUSD DECIMAL(10, 2) NOT NULL,
     bidtime DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (auctionid) REFERENCES auctions(id) ON DELETE CASCADE,
@@ -87,17 +95,17 @@ CREATE TABLE IF NOT EXISTS carimages (
 
 CREATE TABLE IF NOT EXISTS emailcodes (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usertoken VARCHAR(64) NOT NULL,
+    usertoken VARCHAR(512) NOT NULL,
     code VARCHAR(10) NOT NULL,
     expiresat DATETIME NOT NULL,
-    type ENUM('verification', 'password_reset') NOT NULL,
+    type ENUM('verification', 'password-reset', 'email-change') NOT NULL,
     used BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (usertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usertoken VARCHAR(64) NOT NULL UNIQUE,
+    usertoken VARCHAR(512) NOT NULL UNIQUE,
     darkmode BOOLEAN DEFAULT FALSE,
     language ENUM('EN', 'HU') DEFAULT 'EN' NOT NULL,
     currency ENUM('EUR', 'HUF', 'USD') DEFAULT 'EUR' NOT NULL,

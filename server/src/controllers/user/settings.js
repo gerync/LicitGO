@@ -51,3 +51,7 @@ export async function setUserSettings(req, res) {
 
     return res.status(200).json({ message: lang === 'HU' ? 'Beállítások sikeresen frissítve.' : 'Settings updated successfully.' });
 }
+
+export default {
+    setUserSettings,
+};
