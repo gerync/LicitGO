@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import pool from '../database/DB.js';
 import argon2 from 'argon2';
 import { encryptData } from '../utilities/Encrypt.js';
+import { hashEmail, hashMobile } from '../utilities/Hash.js';
 
 function generateUserToken() {
     return crypto.randomBytes(64).toString('hex');
@@ -19,11 +20,13 @@ export default async function setupDB() {
         const encryptedFullname = encryptData(fullname);
         const encryptedMobile = encryptData(mobile);
         const encryptedToken = encryptData(usertoken);
+        const emailHash = hashEmail(email);
+        const mobileHash = hashMobile(mobile);
         const insertQuery = `
-            INSERT INTO users (usertoken, usertag, passwordhash, email, 
-            fullname, gender, birthdate, mobile, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        const params = [encryptedToken, usertag, passwordhash, encryptedEmail,
-            encryptedFullname, gender === 'male' ? 1 : 0, birthdate, encryptedMobile, 'superadmin'];
+            INSERT INTO users (usertoken, usertag, passwordhash, email, email_hash,
+            fullname, gender, birthdate, mobile, mobile_hash, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const params = [encryptedToken, usertag, passwordhash, encryptedEmail, emailHash,
+            encryptedFullname, gender === 'male' ? 1 : 0, birthdate, encryptedMobile, mobileHash, 'superadmin'];
         await pool.execute(insertQuery, params);
         if (configs.server.defaultLanguage === 'EN') {
             console.log(`Superadmin created with details: \n

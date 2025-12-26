@@ -8,14 +8,18 @@ CREATE TABLE IF NOT EXISTS users (
     usertag VARCHAR(32) NOT NULL UNIQUE,
     passwordhash VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
+    email_hash VARCHAR(64) NOT NULL UNIQUE,
     fullname VARCHAR(255) NOT NULL,
     mobile VARCHAR(255) NOT NULL UNIQUE,
+    mobile_hash VARCHAR(64) NOT NULL UNIQUE,
     gender VARCHAR(10) NOT NULL,
     birthdate DATE NOT NULL,
     type ENUM('unverified', 'verified', 'admin', 'superadmin', 'suspended', 'banned', 'deleted') DEFAULT 'unverified' NOT NULL,
     createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     lastlogin DATETIME,
-    publicContacts BOOLEAN DEFAULT TRUE
+    publicContacts BOOLEAN DEFAULT TRUE,
+    INDEX idx_email_hash (email_hash),
+    INDEX idx_mobile_hash (mobile_hash)
 );
 CREATE TABLE IF NOT EXISTS tfa (
     usertoken VARCHAR(512) PRIMARY KEY NOT NULL UNIQUE,

@@ -31,8 +31,9 @@ export default function generateEmailBody(type, lang, info) {
             break;
         case 'reset-password':
             if (lang.toUpperCase() === 'HU') {
+                // LINKRE KICSERÉLNI A STATIKUS KÓDOT AMENNYIBEN VAN MÁR CLIENT SIDE
                 html = `<div class="body">
-                    <p class="header">Kedves Felhasználó!</p>
+                    <p class="header">Kedves ${info.usertag}!</p>
                         <div class="content">
                         <p>Az alábbi kód segítségével állíthatja vissza jelszavát:</p>
                         <h2 class="code">${info.code}</h2>
@@ -43,7 +44,7 @@ export default function generateEmailBody(type, lang, info) {
 
             } else {
                 html = `<div class="body">
-                    <p class="header">Dear User,</p>
+                    <p class="header">Dear ${info.usertag},</p>
                         <div class="content">
                         <p>You can reset your password using the code below:</p>
                         <h2 class="code">${info.code}</h2>
@@ -56,7 +57,7 @@ export default function generateEmailBody(type, lang, info) {
         case 'switch-email':
             if (lang.toUpperCase() === 'HU') {
                 html = `<div class="body">
-                    <p class="header">Kedves Felhasználó!</p>
+                    <p class="header">Kedves ${info.usertag}!</p>
                         <div class="content">
                         <p>Az alábbi kód segítségével erősítheti meg új email címét:</p>
                         <h2 class="code">${info.code}</h2>
@@ -66,7 +67,7 @@ export default function generateEmailBody(type, lang, info) {
                     </div>`;
             } else {
                 html = `<div class="body">
-                    <p class="header">Dear User,</p>
+                    <p class="header">Dear ${info.usertag},</p>
                         <div class="content">
                         <p>Please confirm your new email address using the code below:</p>
                         <h2 class="code">${info.code}</h2>
@@ -79,7 +80,7 @@ export default function generateEmailBody(type, lang, info) {
         case 'enable-2fa':
             if (lang.toUpperCase() === 'HU') {
                 html = `<div class="body">
-                    <p class="header">Kedves Felhasználó!</p>
+                    <p class="header">Kedves ${info.usertag}!</p>
                         <div class="content">
                         <p>Az alábbi kód segítségével engedélyezheti a kétlépcsős azonosítást fiókjában:</p>
                         <h2 class="code">${info.code}</h2>
@@ -89,7 +90,7 @@ export default function generateEmailBody(type, lang, info) {
                     </div>`;
             } else {
                 html = `<div class="body">
-                    <p class="header">Dear User,</p>
+                    <p class="header">Dear ${info.usertag},</p>
                         <div class="content">
                         <p>You can enable two-factor authentication for your account using the code below:</p>
                         <h2 class="code">${info.code}</h2>
@@ -102,7 +103,7 @@ export default function generateEmailBody(type, lang, info) {
         case 'disable-2fa':
             if (lang.toUpperCase() === 'HU') {
                 html = `<div class="body">
-                    <p class="header">Kedves Felhasználó!</p>
+                    <p class="header">Kedves ${info.usertag}!</p>
                         <div class="content">
                         <p>Az alábbi kód segítségével kikapcsolhatja kétlépcsős azonosítását:</p>
                         <h2 class="code">${info.code}</h2>
@@ -112,7 +113,7 @@ export default function generateEmailBody(type, lang, info) {
                     </div>`;
             } else {
                 html = `<div class="body">
-                    <p class="header">Dear User,</p>
+                    <p class="header">Dear ${info.usertag},</p>
                         <div class="content">
                         <p>You can disable your two-factor authentication using the code below:</p>
                         <h2 class="code">${info.code}</h2>
@@ -125,7 +126,7 @@ export default function generateEmailBody(type, lang, info) {
         case 'your-auction-ended':
             if (lang.toUpperCase() === 'HU') {
                 html = `<div class="body">
-                    <p class="header">Kedves Felhasználó!</p>
+                    <p class="header">Kedves ${info.usertag}!</p>
                         <div class="content">
                         <p>Az Ön által létrehozott aukció véget ért:</p>
                         <h2>${info.CarManufacturer} ${info.CarModel}</h2>
@@ -136,7 +137,7 @@ export default function generateEmailBody(type, lang, info) {
                     </div>`;
             } else {
                 html = `<div class="body">
-                    <p class="header">Dear User,</p>
+                    <p class="header">Dear ${info.usertag},</p>
                         <div class="content">
                         <p>Your auction has ended:</p>
                         <h2>${info.CarManufacturer} ${info.CarModel}</h2>
@@ -150,7 +151,7 @@ export default function generateEmailBody(type, lang, info) {
         case 'you-won-auction':
             if (lang.toUpperCase() === 'HU') {
                 html = `<div class="body">
-                    <p class="header">Kedves Felhasználó!</p>
+                    <p class="header">Kedves ${info.usertag}!</p>
                         <div class="content">
                         <p>Gratulálunk! Ön nyerte meg az alábbi aukciót:</p>
                         <h2><a href="${info.AuctionLink}">${info.CarManufacturer} ${info.CarModel}</a></h2>
@@ -160,7 +161,7 @@ export default function generateEmailBody(type, lang, info) {
                     </div>`;
             } else {
                 html = `<div class="body">
-                    <p class="header">Dear User,</p>
+                    <p class="header">Dear ${info.usertag},</p>
                         <div class="content">
                         <p>Congratulations! You have won the following auction:</p>
                         <h2><a href="${info.AuctionLink}">${info.CarManufacturer} ${info.CarModel}</a></h2>
@@ -173,7 +174,7 @@ export default function generateEmailBody(type, lang, info) {
         case 'auction-outbid':
             if (lang.toUpperCase() === 'HU') {
                 html = `<div class="body">
-                    <p class="header">Kedves Felhasználó!</p>
+                    <p class="header">Kedves ${info.usertag}!</p>
                         <div class="content">
                         <p>Az alábbi aukción túllépték az Ön ajánlatát:</p>
                         <h2><a href="${info.AuctionLink}">${info.CarManufacturer} ${info.CarModel}</a></h2>
@@ -183,7 +184,7 @@ export default function generateEmailBody(type, lang, info) {
                     </div>`;
             } else {
                 html = `<div class="body">
-                    <p class="header">Dear User,</p>
+                    <p class="header">Dear ${info.usertag},</p>
                         <div class="content">
                         <p>Your bid has been outbid in the following auction:</p>
                         <h2><a href="${info.AuctionLink}">${info.CarManufacturer} ${info.CarModel}</a></h2>

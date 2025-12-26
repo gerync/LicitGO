@@ -22,5 +22,6 @@ export default async function sendEmail(to, subject, info, type, lang) {
         subject: subject,
         html: generateEmailBody(type, lang, info),
     };
-    return await emailTransporter.sendMail(mailOptions);
+    const result = await emailTransporter.sendMail(mailOptions);
+    return result;
 }

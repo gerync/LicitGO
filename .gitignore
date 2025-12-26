@@ -2,3 +2,8 @@
 node_modules/
 *.env
 .todo
+.dockerignore
+compose.yaml
+Dockerfile
+docker-compose.yaml
+*Docker.md
