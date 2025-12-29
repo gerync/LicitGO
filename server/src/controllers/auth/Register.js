@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 import pool from '../../database/DB.js';
 import { encryptData } from '../../utilities/Encrypt.js';
-import { hashEmail, hashMobile } from '../../utilities/Hash.js';
+import hashdata from '../../utilities/Hash.js';
 
 // Új felhasználó regisztrációja, ütközések és egyedi token biztosítása
 export default async function RegisterController(req, res) {
@@ -20,8 +20,8 @@ export default async function RegisterController(req, res) {
     const encryptedEmail = encryptData(email);
     const encryptedFullname = encryptData(fullname);
     const encryptedMobile = encryptData(mobile);
-    const emailHash = hashEmail(email);
-    const mobileHash = hashMobile(mobile);
+    const emailHash = hashdata(email);
+    const mobileHash = hashdata(mobile);
     // #endregion
 
     // #region Adatbázis lekérdezés: email, felhasználónév, telefonszám egyediségének ellenőrzése, hibák visszaadása
@@ -36,23 +36,23 @@ export default async function RegisterController(req, res) {
         pool.releaseConnection(conn);
         // #region Ütközés kezelése: egyedi mezők (email, usertag, mobile, usertoken) alapján megfelelő hibák dobása
         if (error.code === 'ER_DUP_ENTRY') {
-            if (error.message.includes('users.email')) {
+            if (error.message.includes("'email'")) {
                 throw new Error([ lang === 'HU' ? 'Ez az email cím már használatban van.' : 'This email address is already in use.', 409 ]);
             }
-            else if (error.message.includes('users.email_hash')) {
+            else if (error.message.includes("'email_hash'")) {
                 throw new Error([ lang === 'HU' ? 'Ez az email cím már használatban van.' : 'This email address is already in use.', 409 ]);
             }
-            else if (error.message.includes('users.usertag')) {
+            else if (error.message.includes("'usertag'")) {
                 throw new Error([ lang === 'HU' ? 'Ez a felhasználónév már foglalt.' : 'This usertag is already taken.', 409 ]);
             }
-            else if (error.message.includes('users.mobile')) {
+            else if (error.message.includes("'mobile'")) {
                 throw new Error([ lang === 'HU' ? 'Ez a telefonszám már használatban van.' : 'This mobile number is already in use.', 409 ]);
             }
-            else if (error.message.includes('users.mobile_hash')) {
+            else if (error.message.includes("'mobile_hash'")) {
                 throw new Error([ lang === 'HU' ? 'Ez a telefonszám már használatban van.' : 'This mobile number is already in use.', 409 ]);
             }
             // #region Ütközés a usertoken-nél - új token generálása és újrapróbálkozások az adatbázis beszúrással
-            else if (error.message.includes('users.usertoken')) {
+            else if (error.message.includes("'usertoken'")) {
                 let isInserted = false;
                 while (!isInserted) {
                     try {
@@ -62,7 +62,7 @@ export default async function RegisterController(req, res) {
                         await conn.query(insertQuery, retryParams);
                         isInserted = true;
                     } catch (retryError) {
-                        if (retryError.code !== 'ER_DUP_ENTRY' || !retryError.message.includes('users.usertoken')) {
+                        if (retryError.code !== 'ER_DUP_ENTRY' || !retryError.message.includes("'usertoken'")) {
                             throw retryError;
                         }
                     }

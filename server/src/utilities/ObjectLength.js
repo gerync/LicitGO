@@ -1,7 +1,8 @@
 // Objektum kulcsszám ellenőrzése: -1 ha kevesebb, 1 ha több, 0 ha megfelelő
 export default (object, min, max) => {
     const length = Object.keys(object).length;
-
+    // Ha csak minimális hossz van megadva,
+    // akkor pontosan annyinak kell lennie
     if (!max) {
         if (length != min) {
             return -1;

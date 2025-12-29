@@ -146,10 +146,10 @@ export default function AddCarMiddleware(req, res, next) {
     if (factoryExtras && typeof factoryExtras !== 'string') {
         throw new Error([ lang === 'HU' ? 'Érvénytelen gyári extrák formátum.' : 'Invalid factory extras format.', 400 ]);
     }
-    if (ObjectLength(req.body, 12, 15) === 1) {
+    if (ObjectLength(req.body, 14, 21) === 1) {
         throw new Error([ lang === 'HU' ? 'Túl sok mező lett megadva.' : 'Too many fields provided.', 400 ]);
     }
-    if (ObjectLength(req.body, 12, 15) === -1) {
+    if (ObjectLength(req.body, 14, 21) === -1) {
         throw new Error([ lang === 'HU' ? 'Túl kevés mező lett megadva.' : 'Too few fields provided.', 400 ]);
     }
     //#endregion
@@ -177,8 +177,5 @@ export default function AddCarMiddleware(req, res, next) {
     req.body.factoryExtras = factoryExtras;
     req.body.features = features;
     //#endregion
-
-    //#region Továbbküldés a következő middleware/handler felé
     next();
-    //#endregion
 }

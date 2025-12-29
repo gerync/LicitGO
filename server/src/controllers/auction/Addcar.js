@@ -11,26 +11,26 @@ export default async function AddCarController(req, res) {
         emissionsGKM, doors, seats, vin, maxspeedKMH, zeroToHundredSec, weightKG,
         features, factoryExtras } = req.body;
 
-    // Validate ownertoken
+    // #region Ellenőrzés: ownertoken megléte
     if (!ownertoken) {
         throw new Error([ lang === 'HU' ? 'Hiányzó tulajdonos token.' : 'Missing owner token.', 400 ]);
     }
 
     try {
-        // Round efficiency to 2 decimal places
+        // #region Értékek előfeldolgozása
         const roundedEfficiency = Number(Math.round((efficiency + Number.EPSILON) * 100) / 100);
-
-        // Prepare features as JSON string if it's an object
+        // #endregion
+        // #region Features mező JSON stringgé alakítása
         const featuresJSON = typeof features === 'object' ? JSON.stringify(features) : features || null;
-
-        // Insert car into database
+        // #endregion
+        // #region Adatbázis beszúrás
         const query = `
             INSERT INTO cars (
                 manufacturer, model, odometerKM, modelyear, efficiency, efficiencyunit,
                 enginecapacityCC, fueltype, transmission, bodytype, color, doors, seats,
                 vin, emissionsGKM, maxspeedKMH, zeroToHundredSec, weightKG, factoryExtras,
                 features, ownertoken
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const values = [
@@ -58,6 +58,8 @@ export default async function AddCarController(req, res) {
         ];
 
         const result = await conn.query(query, values);
+        // #endregion
+        // #region Válasz visszaadása
         const carId = result[0].insertId;
         pool.releaseConnection(conn);
         return res.status(201).json({
@@ -65,12 +67,15 @@ export default async function AddCarController(req, res) {
             message: lang === 'HU' ? 'Autó sikeresen hozzáadva.' : 'Car added successfully.',
             carId: carId
         });
+        // #endregion
 
     } catch (error) {
         pool.releaseConnection(conn);
+        // #region Ütközés kezelése VIN kód alapján
         if (error.message.includes('Duplicate entry') || error.code === 'ER_DUP_ENTRY') {
             throw new Error([ lang === 'HU' ? 'Már létezik ilyen VIN kóddal autó.' : 'A car with this VIN already exists.', 409 ]);
         }
+        // #endregion
         throw error;
     }
 }

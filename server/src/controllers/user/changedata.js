@@ -1,5 +1,5 @@
 import { encryptData, decryptData } from '../../utilities/Encrypt.js';
-import { hashEmail, hashMobile } from '../../utilities/Hash.js';
+import hashdata from '../../utilities/Hash.js';
 import pool from '../../database/DB.js';
 
 export async function changeDataController(req, res) {
@@ -35,7 +35,7 @@ export async function changeDataController(req, res) {
 
     // #region Telefonszám titkosítás és egyediség ellenőrzés
     if (mobile) {
-        const mobileHash = hashMobile(mobile);
+        const mobileHash = hashdata(mobile);
         const [mobileRows] = await conn.query('SELECT COUNT(*) AS count FROM users WHERE mobile_hash = ? AND usertoken != ?', [mobileHash, req.usertoken]);
         if (mobileRows[0].count > 0) {
             pool.releaseConnection(conn);

@@ -29,7 +29,7 @@ export default function changeDataMiddleware(req, res, next) {
     }
     // #endregion
 
-    // #region Módosításra köldött paraméterek száma (1-4 között), -1 vagy 1 vis, ha kevesebb vagy több
+    // #region Módosításra küldött paraméterek száma (1-4 között) ellenőrzése
     if (ObjectLength(req.body, 1, 4) == -1) {
         throw new Error(lang === 'HU' ? 'Nincs megváltoztatandó adat megadva.' : 'No data to change provided.', 400);
     }
@@ -38,7 +38,7 @@ export default function changeDataMiddleware(req, res, next) {
     }
     // #endregion
 
-    // #region Regex pattern ellenőrzés: usertag, fullname, mobile formátum, gender hossz 10 karakteren belül
+    // #region Regex minta ellenőrzés: usertag, fullname, mobile formátum, gender hossz 10 karakteren belül
     if (usertag && !regexes.usertag.test(usertag)) {
         throw new Error(lang === 'HU' ? 'Érvénytelen felhasználónév formátum.' : 'Invalid usertag format.', 400);
     }

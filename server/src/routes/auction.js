@@ -6,7 +6,7 @@ import RateLimit from 'express-rate-limit';
 import AuthMiddleware from '../middlewares/auth/isLoggedIn.js';
 
 import AddCarController from '../controllers/auction/Addcar.js';
-import AddCarMiddleware from '../middlewares/auction/AddCar.js';
+import AddCarMiddleware from '../middlewares/auction/Addcar.js';
 
 
 import AddauctionController from '../controllers/auction/Addauction.js';

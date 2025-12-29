@@ -45,11 +45,13 @@ export default {
     // #endregion
     // #region ===== ADATBÁZIS KONFIGURÁCIÓK =====
     db: {
+        type: process.env.DBTYPE || 'mysql',               // Adatbázis típusa (pl. mysql, postgres)
         host: process.env.DBHOST || 'localhost',        // MySQL szerver hosztja
         user: process.env.DBUSER || 'root',             // Adatbázis felhasználó
         password: process.env.DBPASS || '',         // Adatbázis jelszó
         name: process.env.DBNAME || 'licitgo',          // Adatbázis neve
         port: process.env.DBPORT || 3306,               // MySQL port (alapértelmezett: 3306)
+        sync: process.env.DBSYNC === 'true' ? true : false, // Adatbázis séma szinkronizálása (fejlesztéshez)
     },
     // #endregion
     // #region ===== BIZTONSÁGI TITKOK =====
@@ -91,6 +93,10 @@ export default {
         algorithm: process.env.ENCRYPTALG || 'aes-256-cbc',     // Titkosítási algoritmus (AES-256 CBC mód)
         secretKey: process.env.ENCRYPTKEY || '0123456789abcdef0123456789abcdef', // 32 karakteres titkosítási kulcs
         keyEncoding: process.env.ENCRYPTENC || 'utf8',          // Kulcs kódolása
+        hash: {
+            salt: process.env.HASHSALT || 'HASHSALTASDASDA', // Hasheléshez használt 'só'
+            algorithm: process.env.HASHALG || 'sha256', // Hashelési algoritmus
+        }
     },
     // #endregion
     // #region ===== ADMIN FELHASZNÁLÓ ALAPÉRTELMEZETI ADATAI =====

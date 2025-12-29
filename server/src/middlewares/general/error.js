@@ -5,7 +5,7 @@ export default function errorHandler(err, req, res, next) {
 
     let status = Number.isInteger(err?.status) ? err.status : Number.isInteger(err?.statusCode) ? err.statusCode : undefined;
     let message = typeof err?.message === 'string' ? err.message : defaultMessage;
-    // Ha az Error() üzenet végén vesszővel elválasztott státuszkód jön ("msg,400"), bontsuk szét
+    // Ha az Error() üzenet végén vesszővel elválasztott státuszkód jön ("msg,400"), szét bontja
     if (!status && typeof message === 'string') {
         const match = message.match(/^(.*),(\d{3})$/);
         if (match) {
