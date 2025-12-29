@@ -1,14 +1,14 @@
 import sendEmail from '../../../email/send.js';
 import Configs from '../../../configs/Configs.js';
 import pool from '../../../database/DB.js';
-import { hashEmail } from '../../../utilities/Hash.js';
+import hashdata from '../../../utilities/Hash.js';
 import argon from 'argon2';
 
 export async function PasswordResetRequestController(req, res) {
     const email = req.body.email;
     const lang = req.lang;
     const conn = await pool.getConnection();
-    const emailHash = hashEmail(email);
+    const emailHash = hashdata(email);
     
     // Email hash alapján lekérdezés
     const [results] = await conn.query('SELECT usertag, fullname, usertoken FROM users WHERE email_hash = ?', [emailHash]);

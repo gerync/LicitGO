@@ -1,15 +1,18 @@
 import Regexes from '../../../utilities/Regexes.js';
 import ObjectLength from '../../../utilities/ObjectLength.js';
 export function PasswordResetRequestMiddleware(req, res, next) {
+    // #region Email mező ellenőrzése
     const email = req.body.email;
     const lang = req.lang;
     if (!email || !Regexes.email.test(email)) {
         throw new Error(lang === 'HU' ? 'Kérjük, adjon meg egy érvényes email címet.' : 'Please provide a valid email address.');
     }
+    // #endregion
     next();
 }
 
 export function PasswordResetMiddleware(req, res, next) {
+    // #region Kód és új jelszó mezők ellenőrzése
     let code = req.query.code || req.body.code;
     const newPassword = req.body.newPassword;
     const lang = req.lang;
@@ -47,6 +50,7 @@ export function PasswordResetMiddleware(req, res, next) {
     if (!Regexes.password.special.test(newPassword)) {
         throw new Error(lang === 'HU' ? 'A jelszónak tartalmaznia kell legalább egy speciális karaktert.' : 'Password must contain at least one special character.');
     }
+    // #endregion
     next();
 }
 export default {

@@ -1,18 +1,14 @@
 import crypto from 'crypto';
+import configs from '../configs/Configs.js';
 
-const HASH_SALT = 'licitgo_searchable_hash_salt_v1';
+const salt = configs.encryption.hash.salt;
+const algorithm = configs.encryption.hash.algorithm;
 
 // hash létrehozása kereshető titkosított mezőkhöz
-export function hashEmail(email) {
-    return crypto.createHash('sha256').update(email.toLowerCase() + HASH_SALT).digest('hex');
+export default function hashdata(data) {
+    let hashedData = crypto.createHash(algorithm);
+    hashedData.update(data.toLowerCase() + salt); // kis- és nagybetű érzéketlen hash létrehozása a sóval
+    hashedData = hashedData.digest('hex'); // hexadecimális formátumú hash visszaadása
+    return hashedData;
+    // felhasznált minta: https://tinyurl.com/crypto-createhash
 }
-
-// hash létrehozása telefonszámokhoz
-export function hashMobile(mobile) {
-    return crypto.createHash('sha256').update(mobile.toLowerCase() + HASH_SALT).digest('hex');
-}
-
-export default {
-    hashEmail,
-    hashMobile,
-};

@@ -8,7 +8,7 @@ import swaggerUi from 'swagger-ui-express';
 // #region Middleware importok
 import cookieMiddleware from './middlewares/general/cookies.js';
 import errorHandler from './middlewares/general/error.js';
-import swaggerSpec from './swagger.js';
+import swaggerSpec from './routes/swagger.js';
 // #endregion
 
 // #region Adatbázis és útvonal importok
@@ -36,7 +36,8 @@ app.use(express.json());
 
 
 app.use(cookieMiddleware);
-
+// #endregion
+// #region Swagger dokumentáció beállítása
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     explorer: true,
     swaggerOptions: {

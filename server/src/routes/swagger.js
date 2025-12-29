@@ -1,6 +1,11 @@
 import swaggerJsdoc from 'swagger-jsdoc';
-import configs from './configs/Configs.js';
+import configs from '../configs/Configs.js';
 
+// tekintettel arra, hogy nem ismerem a swagger-jsdoc könyvtárat
+// a ez a fájl a következő github repo példáján alapul:
+// https://tinyurl.com/swagger-example
+
+// #region Swagger api dokumentáció definíció
 const swaggerDefinition = {
     openapi: '3.0.3',
     info: {
@@ -374,12 +379,17 @@ const swaggerDefinition = {
         },
     },
 };
+// #endregion
 
+// #region Swagger jsdoc opciók és specifikáció generálás
 const swaggerOptions = {
     definition: swaggerDefinition,
     apis: [],
 };
+// #endregion
 
+// #region Swagger specifikáció generálás
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
+// #endregion
 
 export default swaggerSpec;

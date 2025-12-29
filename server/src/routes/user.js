@@ -54,6 +54,7 @@ const RL = {
 // #region Router létrehozása
 const router = express.Router();
 // #endregion
+// #region Útvonalak definiálása
 // #region Felhasználói adatok módosítása
 router.put('/changedata', [isLoggedIn, RL.changeData, changeDataMiddleware], changeDataController);
 // #endregion
@@ -71,6 +72,7 @@ router.post('/password/reset', [RL.passwordReset, PasswordResetMiddleware], Pass
 // #endregion
 // #region Jelszó módosítása bejelentkezett felhasználó számára
 router.put('/password/change', [isLoggedIn, changePasswordMiddleware], changePasswordController);
+// #endregion
 // #endregion
 // #region Exportálás
 export default router;
