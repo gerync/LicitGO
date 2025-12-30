@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
+import cron from 'node-cron';
 // #endregion
 
 // #region Middleware importok
@@ -21,9 +22,12 @@ import auctionRoutes from './routes/auction.js';
 
 import startupEmail from './email/startup.js';
 import Configs from './configs/Configs.js';
-
 // #endregion
-// #region Szerver inicializálása és middleware-ek beállítása
+// #region Árfolyam lekérés importálása
+import { FetchExchanges } from './utilities/exchange/getExchanges.js';
+// #endregion 
+// #region Szerver meghatározása
+// és middleware-ek beállítása
 const app = express();
 const corsOptions = {
     origin: [configs.server.domain()],
@@ -42,7 +46,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     explorer: true,
     swaggerOptions: {
         persistAuthorization: true,
-        // Ensure Swagger "Try it out" sends/receives cookies when CORS is enabled
+        // Bizonyos kérésekhez cookie-k küldése
         requestInterceptor: (req) => {
             req.credentials = 'include';
             return req;
@@ -63,7 +67,7 @@ app.use('/user', userRoutes);
 
 
 // #endregion
-// #region Hibakezelő middleware beállítása és szerver indítása
+// #region Hibakezelő middleware beállítása és szerver bootolása
 app.use(errorHandler);
 const PORT = configs.server.port
 app.listen(PORT, async () => {
@@ -74,5 +78,15 @@ app.listen(PORT, async () => {
     } else {
         console.log(`Server is running at ${Configs.server.domain()} on port ${PORT}`);
     }
+    await FetchExchanges();
+});
+// #endregion
+/* 
+#region Napi árfolyam frissítés ütemezése
+minden nap 3:30-kor (statisztikailag ekkor a legkevesebb
+az internetes forgalom)
+*/
+cron.schedule('30 3 * * *', async () => {
+    await FetchExchanges();
 });
 // #endregion
