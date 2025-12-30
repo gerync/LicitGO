@@ -1,6 +1,6 @@
-import Configs from "../configs/Configs.js";
-import { emailTransporter } from "./send.js";
-import generateEmailBody from "./body.js";
+import Configs from '../configs/Configs.js';
+import { emailTransporter } from './send.js';
+import generateEmailBody from './body.js';
 
 export async function sendTestEmailOnStartup() {
     if (Configs.email.notifyOnStartup === true) {
@@ -42,18 +42,26 @@ export async function sendTestEmailOnStartup() {
                 if (Configs.server.defaultLanguage.toUpperCase() === 'HU') {
                     console.error(`Hiba az indítási értesítő email küldése során: `, error.response);
                 } else {
-                    console.error("Error sending test email on startup: ", error.response);
+                    console.error('Error sending test email on startup: ', error.response);
                 }
             }
             else {
                 if (Configs.server.defaultLanguage.toUpperCase() === 'HU') {
-                    console.error("Hiba az indítási értesítő email küldése során: ", error.message);
+                    console.error('Hiba az indítási értesítő email küldése során: ', error.message);
                 } else {
-                    console.error("Error sending test email on startup: ", error.message);
+                    console.error('Error sending test email on startup: ', error.message);
                 }
             }
         }
     }
+    else {
+        if (Configs.server.defaultLanguage.toUpperCase() === 'HU') {
+            console.log('Az indítási értesítő email küldése ki van kapcsolva.');
+        } else {
+            console.log('Startup notification email sending is disabled.');
+        }
+    }
+    console.log('='.repeat(50));
 }
 
 export default sendTestEmailOnStartup;

@@ -1,6 +1,6 @@
-import ObjectLength from "../../utilities/ObjectLength.js";
-import jwt from "jsonwebtoken";
-import configs from "../../configs/Configs.js";
+import ObjectLength from '../../utilities/ObjectLength.js';
+import jwt from 'jsonwebtoken';
+import configs from '../../configs/Configs.js';
 
 // Felhasználói beállítások validálása: mennyiség, típus, értékkészlet; JWT-ből usertoken kiemelése
 export default async function userSettings(req, res, next) {
