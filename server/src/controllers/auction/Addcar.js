@@ -1,7 +1,5 @@
 import pool from '../../database/DB.js';
-import convert from '../../utilities/exchange/convert.js';
 import path from 'path';
-import fs from 'fs';
 
 export default async function AddCarController(req, res) {
     const lang = req.lang;
@@ -25,14 +23,19 @@ export default async function AddCarController(req, res) {
         // #region Features mező JSON stringgé alakítása
         const featuresJSON = typeof features === 'object' ? JSON.stringify(features) : features || null;
         // #endregion
+        // #region Kép fájlnevek összeállítása (kiterjesztéssel)
+        const images = req.validatedImages || [];
+        const imageFilenames = images.map((file) => file.filename || path.basename(file.path || '') || file.originalname || '');
+        const imagesJSON = JSON.stringify(imageFilenames);
+        // #endregion
         // #region Adatbázis beszúrás
         const query = `
             INSERT INTO cars (
                 manufacturer, model, odometerKM, modelyear, efficiency, efficiencyunit,
                 enginecapacityCC, fueltype, transmission, bodytype, color, doors, seats,
                 vin, emissionsGKM, maxspeedKMH, zeroToHundredSec, weightKG, factoryExtras,
-                features, ownertoken
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                features, images, ownertoken
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const values = [
@@ -56,49 +59,12 @@ export default async function AddCarController(req, res) {
             weightKG || null,
             factoryExtras || null,
             featuresJSON,
+            imagesJSON,
             ownertoken
         ];
 
         const result = await conn.query(query, values);
         const carId = result[0].insertId;
-        // #endregion
-
-        // #region Képek mentése az adatbázisba
-        const images = req.validatedImages || [];
-        
-        if (images.length > 0) {
-            try {
-                const insertImageQuery = `
-                    INSERT INTO carimages (carid, filepath, orderindex)
-                    VALUES (?, ?, ?)
-                `;
-
-                for (let i = 0; i < images.length; i++) {
-                    const image = images[i];
-                    // filepath is relative to media folder: cars/filename.ext
-                    const relativePath = path.join('cars', image.filename).replace(/\\/g, '/');
-                    await conn.query(insertImageQuery, [carId, relativePath, i]);
-                }
-            } catch (imageError) {
-                // If image database insertion fails, rollback car creation
-                await conn.query('DELETE FROM cars WHERE id = ?', [carId]);
-                
-                // Also delete uploaded files
-                for (const image of images) {
-                    try {
-                        fs.unlinkSync(image.path);
-                    } catch (unlinkErr) {
-                        console.error(`Failed to delete file ${image.path}:`, unlinkErr);
-                    }
-                }
-                
-                pool.releaseConnection(conn);
-                throw new Error([
-                    lang === 'HU' ? `Képek mentése sikertelen. Autó hozzáadása visszavonva: ${imageError.message}` : `Failed to save images. Car addition reverted: ${imageError.message}`,
-                    500
-                ]);
-            }
-        }
         // #endregion
 
         // #region Válasz visszaadása

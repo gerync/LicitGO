@@ -18,11 +18,15 @@ export default {
         domain: function() {
             // ↓ Biztosítja, hogy a domain tartalmazza a portot, ha szükséges
             let domain = (process.env.DOMAIN || 'http://localhost').toLowerCase();
-            // Hozzáadjuk a portot, ha nincs benne
+            // ↓ Hozzáadjuk a portot, ha nincs benne
             // ↓ és a domain helyi (localhost)
             const port = this.port;
             if (port && !domain.includes(`:${port}`) && domain.includes('localhost')) {
                 domain += `:${port}`;
+            }
+            // ↓ Eltávolítja a végső '/' karaktert, ha van
+            if (domain.endsWith('/')) {
+                domain = domain.slice(0, -1);
             }
             return domain;
         },

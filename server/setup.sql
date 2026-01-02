@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS cars (
     factoryExtras TEXT,
     features TEXT,
     ownertoken VARCHAR(512) NOT NULL,
+    images JSON,
     FOREIGN KEY (ownertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
 
@@ -81,15 +82,6 @@ CREATE TABLE IF NOT EXISTS bids (
     bidtime DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (auctionid) REFERENCES auctions(id) ON DELETE CASCADE,
     FOREIGN KEY (bidder) REFERENCES users(usertoken) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS carimages (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    carid INT NOT NULL,
-    filepath VARCHAR(255) NOT NULL,
-    uploadedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    orderindex INT DEFAULT 0 CHECK (orderindex >= 0 AND orderindex < 50),
-    FOREIGN KEY (carid) REFERENCES cars(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS emailcodes (
