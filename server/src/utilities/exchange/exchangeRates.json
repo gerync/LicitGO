@@ -1,6 +1,7 @@
 [
     {
-        "fetched_at": "2025-12-30 15:01:34",
+        "fetched_at": "2025-12-30 19:54:26",
+        "lastupdate": "Tue, 30 Dec 2025 00:00:01 +0000",
         "rates": {
             "EURUSD": 1.1771,
             "EURHUF": 386.8492,
@@ -9,11 +10,22 @@
         "success": true
     },
     {
-        "fetched_at": "2025-12-30 15:14:53",
+        "fetched_at": "2025-12-31 00:15:32",
+        "lastupdate": "Wed, 31 Dec 2025 00:00:02 +0000",
         "rates": {
-            "EURUSD": 1.1771,
-            "EURHUF": 386.8492,
-            "USDHUF": 328.8601
+            "EURUSD": 1.1754,
+            "EURHUF": 385.8907,
+            "USDHUF": 328.3001
+        },
+        "success": true
+    },
+    {
+        "fetched_at": "2026-01-01 01:15:44",
+        "lastupdate": "2026. 01. 01. 01:00:01",
+        "rates": {
+            "EURUSD": 1.1743,
+            "EURHUF": 384.9194,
+            "USDHUF": 327.7643
         },
         "success": true
     }

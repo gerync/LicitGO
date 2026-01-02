@@ -4,6 +4,7 @@ import pool from '../database/DB.js';
 import argon2 from 'argon2';
 import { encryptData } from '../utilities/Encrypt.js';
 import hashdata from '../utilities/Hash.js';
+import { coloredlog } from '@gerync/utils';
 
 function generateUserToken() {
     return crypto.randomBytes(64).toString('hex');
@@ -32,29 +33,19 @@ export default async function setupDB() {
         await pool.execute(insertQuery, params);
         // #endregion
         // #region Konzolra kiírás
-        if (configs.server.defaultLanguage === 'EN') {
-            console.log(`Superadmin created with details: \n
-            Usertag: ${usertag} \n
-            Email: ${email} \n
-            Fullname: ${fullname} \n
-            Password: ${password} \n
-            Mobile: ${mobile} \n
-            \n
-            Please keep these credentials safe. \n
-            Please change the password after first login.
-        `);
-        } 
-        else {
-            console.log(`Superadmin létrehozva a következő adatokkal: \n
-            Felhasználónév: ${usertag} \n
-            Email: ${email} \n
-            Teljes név: ${fullname} \n
-            Jelszó: ${password} \n
-            Mobil: ${mobile} \n
-            \n
-            Kérjük, őrizze meg ezeket az adatokat biztonságban. \n
-            Kérjük, jelentkezzen be és változtassa meg a jelszavát.
-        `);
+        const colors = configs.colors;
+        if (configs.server.defaultLanguage === 'HU') {
+            coloredlog([`Alapértelmezett superadmin felhasználó létrehozva!`,
+                `Felhasználónév: ${usertag}`,
+                `Jelszó: ${password}`,
+                `Kérlek, jelentkezz be és változtasd meg a jelszavad!\n`], 
+                [colors.success, colors.highlight, colors.warning, colors.error]);
+        } else {
+            coloredlog([`Default superadmin user created!`,
+                `Username: ${usertag}`,
+                `Password: ${password}`,
+                `Please log in and change your password!\n`], 
+                [colors.success, colors.highlight, colors.warning, colors.error]);
         }
         // #endregion
     }

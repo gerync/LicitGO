@@ -20,7 +20,7 @@ export function PasswordResetMiddleware(req, res, next) {
     if (!code || code.length !== 6 || isNaN(code)) {
         throw new Error(lang === 'HU' ? 'Kérjük, adjon meg egy érvényes 6 jegyű jelszó visszaállító kódot.' : 'Please provide a valid 6-digit password reset code.');
     }
-    req.code = Number(code);
+    req.code = parseInt(code);
     if (!newPassword) {
         throw new Error(lang === 'HU' ? 'Kérjük, adjon meg egy új jelszót.' : 'Please provide a new password.');
     }

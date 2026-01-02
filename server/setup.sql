@@ -68,7 +68,6 @@ CREATE TABLE IF NOT EXISTS auctions (
     reservepriceUSD DECIMAL(10, 2),
     starttime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     endtime DATETIME NOT NULL,
-    status ENUM('upcoming', 'active', 'completed', 'cancelled') DEFAULT 'active' NOT NULL,
     winner VARCHAR(512),
     FOREIGN KEY (carid) REFERENCES cars(id) ON DELETE CASCADE,
     FOREIGN KEY (winner) REFERENCES users(usertoken) ON DELETE SET NULL
