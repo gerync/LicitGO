@@ -1,5 +1,5 @@
 import Configs from '../configs/Configs.js';
-import nodemailer from nodemailer;
+import nodemailer from 'nodemailer';
 import generateEmailBody from './body.js';
 // Email küldő transporter létrehozása nodemailer-rel
 export const emailTransporter = nodemailer.createTransport({

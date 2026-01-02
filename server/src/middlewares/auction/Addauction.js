@@ -11,18 +11,18 @@ export default function AddAuctionMiddleware(req, res, next) {
     if (!carid || !startingBid || !reservePrice || !starttime || !endtime) {
         throw new Error([ lang === 'HU' ? 'Az aukció létrehozásához minden mező kitöltése kötelező.' : 'All fields are required to create the auction.', 400 ]);
     }
-    if (isNaN(Number(carid))) {
+    if (isNaN(parseInt(carid))) {
         throw new Error([ lang === 'HU' ? 'A kiválasztott autó érvénytelen' : 'The selected car is invalid.', 400 ]);
     }
-    if (isNaN(Number(startingBid))) {
+    if (isNaN(parseInt(startingBid))) {
         throw new Error([ lang === 'HU' ? 'A kezdeti licitnek numerikus értéknek kell lennie.' : 'The starting bid must be a numeric value.', 400 ]);
     }
-    if (isNaN(Number(reservePrice))) {
+    if (isNaN(parseInt(reservePrice))) {
         throw new Error([ lang === 'HU' ? 'A fenntartási árnak numerikus értéknek kell lennie.' : 'The reserve price must be a numeric value.', 400 ]);
     }
-    req.body.carid = Number(carid);
-    req.body.startingBid = Number(startingBid);
-    req.body.reservePrice = Number(reservePrice);
+    req.body.carid = parseInt(carid);
+    req.body.startingBid = parseInt(startingBid);
+    req.body.reservePrice = parseInt(reservePrice);
     if (isNaN(Date.parse(starttime))) {
         throw new Error([ lang === 'HU' ? 'A licit indulásának érvényes dátum formátumúnak kell lennie.' : 'The starting time must be a valid date format.', 400 ]);
     }
