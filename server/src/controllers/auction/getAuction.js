@@ -82,12 +82,14 @@ export default async function GetAuctionController(req, res) {
         }))
     );
     // #endregion
+    const reserveMet = row.reservepriceUSD ? currentPrice >= row.reservepriceUSD : true;
     // #region Válasz összeállítása
     const auctionDetails = {
         auctionId: row.id,
         carId: row.carid,
         currentPrice: await convert(currentPrice, 'USD', currency),
-        reservePriceUSD: await convert(row.reservepriceUSD, 'USD', currency),
+        reserveMet: reserveMet,
+        currency: currency,
         starttime: row.starttime,
         endtime: row.endtime,
         status: status,

@@ -1,7 +1,12 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-import Configs from '../configs/Configs';
+import { fileURLToPath } from 'url';
+import Configs from '../configs/Configs.js';
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const carImagesDir = path.join(__dirname, '../../media/cars');
 if (!fs.existsSync(carImagesDir)) {
@@ -69,4 +74,20 @@ const uploadPfpImage = multer({
     }
 });
 
-export { uploadPfpImage, uploadMultipleCarImages };
+async function deletePfpFile(filename) {
+    if (!filename) {
+        return;
+    }
+    const filePath = path.join(PfpImageDir, filename);
+    try {
+        await fs.promises.unlink(filePath);
+    }
+    catch (error) {
+        // Ignore already removed files
+        if (error.code !== 'ENOENT') {
+            throw error;
+        }
+    }
+}
+
+export { uploadPfpImage, uploadMultipleCarImages, deletePfpFile };

@@ -1,79 +1,117 @@
 import { encryptData, decryptData } from '../../utilities/Encrypt.js';
 import hashdata from '../../utilities/Hash.js';
 import pool from '../../database/DB.js';
+import Configs from '../../configs/Configs.js';
+import { deletePfpFile } from '../../utilities/ManageImages.js';
 
 export async function changeDataController(req, res) {
     // #region Kapcsolat és adatkiemelés
     const lang = req.lang;
     const conn = await pool.getConnection();
     const { usertag, fullname, mobile, gender } = req.body;
+    const removePfp = req.body.removePfp === true;
+    const pfpFile = req.file;
     const updates = [];
     const params = [];
+    let newPfpUrl;
     // #endregion
 
-    // #region Felhasználónév egyediség ellenőrzés és frissítés
-    if (usertag) {
-        const usertagQuery = 'SELECT COUNT(*) AS count FROM users WHERE usertag = ? AND usertoken != ?';
-        const usertagParams = [usertag, req.usertoken];
-        const [usertagRows] = await conn.query(usertagQuery, usertagParams);
-        if (usertagRows[0].count > 0) {
-            pool.releaseConnection(conn);
-            throw new Error([ lang === 'HU' ? 'A felhasználónév már foglalt.' : 'The usertag is already taken.', 409 ]);
+    try {
+        // #region Felhasználónév egyediség ellenőrzés és frissítés
+        if (usertag) {
+            const usertagQuery = 'SELECT COUNT(*) AS count FROM users WHERE usertag = ? AND usertoken != ?';
+            const usertagParams = [usertag, req.usertoken];
+            const [usertagRows] = await conn.query(usertagQuery, usertagParams);
+            if (usertagRows[0].count > 0) {
+                throw new Error([ lang === 'HU' ? 'A felhasználónév már foglalt.' : 'The usertag is already taken.', 409 ]);
+            }
+            updates.push('usertag = ?');
+            params.push(usertag);
         }
-        updates.push('usertag = ?');
-        params.push(usertag);
-    }
-    // #endregion
+        // #endregion
 
-    // #region Teljes név frissítése
-    if (fullname) {
-        const encryptedFullname = encryptData(fullname);
-        updates.push('fullname = ?');
-        params.push(encryptedFullname);
-    }
-    // #endregion
-
-    // #region Telefonszám titkosítás és egyediség ellenőrzés
-    if (mobile) {
-        const mobileHash = hashdata(mobile);
-        const [mobileRows] = await conn.query('SELECT COUNT(*) AS count FROM users WHERE mobile_hash = ? AND usertoken != ?', [mobileHash, req.usertoken]);
-        if (mobileRows[0].count > 0) {
-            pool.releaseConnection(conn);
-            throw new Error([ lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.', 409 ]);
+        // #region Teljes név frissítése
+        if (fullname) {
+            const encryptedFullname = encryptData(fullname);
+            updates.push('fullname = ?');
+            params.push(encryptedFullname);
         }
-        const encryptedMobile = encryptData(mobile);
-        updates.push('mobile = ?, mobile_hash = ?');
-        params.push(encryptedMobile, mobileHash);
-    }
-    // #endregion
+        // #endregion
 
-    // #region Nem frissítése
-    if (gender) {
-        updates.push('gender = ?');
-        params.push(gender);
-    }
-    // #endregion
+        // #region Telefonszám titkosítás és egyediség ellenőrzés
+        if (mobile) {
+            const mobileHash = hashdata(mobile);
+            const [mobileRows] = await conn.query('SELECT COUNT(*) AS count FROM users WHERE mobile_hash = ? AND usertoken != ?', [mobileHash, req.usertoken]);
+            if (mobileRows[0].count > 0) {
+                throw new Error([ lang === 'HU' ? 'A telefonszám már foglalt.' : 'The mobile number is already taken.', 409 ]);
+            }
+            const encryptedMobile = encryptData(mobile);
+            updates.push('mobile = ?, mobile_hash = ?');
+            params.push(encryptedMobile, mobileHash);
+        }
+        // #endregion
 
-    // #region Üres frissítések ellenőrzés és adatbázis művelet
-    if (updates.length === 0) {
+        // #region Nem frissítése
+        if (gender) {
+            updates.push('gender = ?');
+            params.push(gender);
+        }
+        // #endregion
+
+        // #region Üres frissítések ellenőrzés és adatbázis művelet
+        if (updates.length === 0 && !pfpFile && !removePfp) {
+            throw new Error([ lang === 'HU' ? 'Nincs frissítendő adat.' : 'No data to update.', 400 ]);
+        }
+
+        if (updates.length > 0) {
+            params.push(req.usertoken);
+            const updateQuery = `UPDATE users SET ${updates.join(', ')} WHERE usertoken = ?`;
+            const [result] = await conn.query(updateQuery, params);
+            if (result.affectedRows !== 1) {
+                throw new Error([ lang === 'HU' ? 'Hiba történt az adatok frissítése során.' : 'An error occurred while updating data.', 500 ]);
+            }
+        }
+        // #endregion
+
+        // #region Profilkép frissítése vagy törlése
+        if (pfpFile || removePfp) {
+            const [pfpRows] = await conn.query('SELECT filename FROM profpics WHERE usertoken = ?', [req.usertoken]);
+            const existingFilename = pfpRows.length > 0 ? pfpRows[0].filename : null;
+
+            if (pfpFile) {
+                await conn.query('INSERT INTO profpics (usertoken, filename) VALUES (?, ?) ON DUPLICATE KEY UPDATE filename = VALUES(filename)', [req.usertoken, pfpFile.filename]);
+                newPfpUrl = `${Configs.server.domain()}/media/users/${pfpFile.filename}`;
+                if (existingFilename && existingFilename !== pfpFile.filename) {
+                    await deletePfpFile(existingFilename).catch(() => {});
+                }
+            }
+            else if (removePfp) {
+                await conn.query('DELETE FROM profpics WHERE usertoken = ?', [req.usertoken]);
+                if (existingFilename) {
+                    await deletePfpFile(existingFilename).catch(() => {});
+                }
+                newPfpUrl = null;
+            }
+        }
+        // #endregion
+
+        // #region Válasz kezelése
+        return res.status(200).json({
+            message: lang === 'HU' ? 'Adatok sikeresen frissítve.' : 'Data updated successfully.',
+            pfp: newPfpUrl,
+        });
+        // #endregion
+    }
+    catch (error) {
+        // Cleanup freshly uploaded file on failure to keep disk clean
+        if (pfpFile) {
+            await deletePfpFile(pfpFile.filename).catch(() => {});
+        }
+        throw error;
+    }
+    finally {
         pool.releaseConnection(conn);
-        throw new Error([ lang === 'HU' ? 'Nincs frissítendő adat.' : 'No data to update.', 400 ]);
     }
-
-    params.push(req.usertoken);
-    const updateQuery = `UPDATE users SET ${updates.join(', ')} WHERE usertoken = ?`;
-    const [result] = await conn.query(updateQuery, params);
-    pool.releaseConnection(conn);
-    // #endregion
-
-    // #region Válasz kezelése
-    if (result.affectedRows === 1) {
-        return res.status(200).json({ message: lang === 'HU' ? 'Adatok sikeresen frissítve.' : 'Data updated successfully.' });
-    }
-    else {
-        throw new Error([ lang === 'HU' ? 'Hiba történt az adatok frissítése során.' : 'An error occurred while updating data.', 500 ]);
-    }
-    // #endregion
 }
 
 // Felhasználói alapadatok lekérése és érzékeny mezők maszkolása
@@ -82,7 +120,11 @@ export async function getUserData(req, res) {
     const lang = (req.cookies.language || 'EN').toUpperCase();
     const conn = await pool.getConnection();
     const usertoken = req.usertoken;
-    const query = 'SELECT usertag, fullname, mobile, gender, birthdate, email FROM users WHERE usertoken = ?';
+    const query = `
+        SELECT u.usertag, u.fullname, u.mobile, u.gender, u.birthdate, u.email, p.filename AS pfpFilename
+        FROM users u
+        LEFT JOIN profpics p ON p.usertoken = u.usertoken
+        WHERE u.usertoken = ?`;
     const params = [usertoken];
     const [rows] = await conn.query(query, params);
     pool.releaseConnection(conn);
@@ -114,7 +156,8 @@ export async function getUserData(req, res) {
             mobile: mobile,
             gender: rows[0].gender,
             birthdate: rows[0].birthdate,
-            email: email
+            email: email,
+            pfp: rows[0].pfpFilename ? `${Configs.server.domain()}/media/users/${rows[0].pfpFilename}` : null,
         };
         return res.status(200).send(userData);
     } else {
