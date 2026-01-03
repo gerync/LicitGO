@@ -30,7 +30,7 @@ export default async function setupDB() {
             fullname, gender, birthdate, mobile, mobile_hash, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const params = [encryptedToken, usertag, passwordhash, encryptedEmail, emailHash,
             encryptedFullname, gender === 'male' ? 1 : 0, birthdate, encryptedMobile, mobileHash, 'superadmin'];
-        await pool.execute(insertQuery, params);
+        await pool.query(insertQuery, params);
         // #endregion
         // #region Konzolra kiírás
         const colors = configs.colors;

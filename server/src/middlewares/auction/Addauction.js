@@ -23,6 +23,12 @@ export default function AddAuctionMiddleware(req, res, next) {
     req.body.carid = parseInt(carid);
     req.body.startingBid = parseInt(startingBid);
     req.body.reservePrice = parseInt(reservePrice);
+    
+    // Fenntartási ár nem lehet kisebb, mint a kezdő licit
+    if (req.body.reservePrice < req.body.startingBid) {
+        throw new Error([ lang === 'HU' ? 'A fenntartási ár nem lehet kisebb a kezdő liciteknél.' : 'Reserve price cannot be less than starting bid.', 400 ]);
+    }
+    
     if (isNaN(Date.parse(starttime))) {
         throw new Error([ lang === 'HU' ? 'A licit indulásának érvényes dátum formátumúnak kell lennie.' : 'The starting time must be a valid date format.', 400 ]);
     }

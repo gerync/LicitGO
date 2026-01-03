@@ -4,6 +4,9 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import cron from 'node-cron';
+import helmet from 'helmet';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { coloredlog } from '@gerync/utils';
 // #endregion
 
@@ -16,29 +19,50 @@ import swaggerSpec from './routes/swagger.js';
 // #region Adatbázis és útvonal importok
 import setup from './database/SetupDB.js';
 
-import configs from './configs/Configs.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/user.js';
 import auctionRoutes from './routes/auction.js';
-
 import startupEmail from './email/startup.js';
 import Configs from './configs/Configs.js';
 // #endregion
 // #region Árfolyam lekérés importálása
 import FetchExchanges from './utilities/exchange/FetchExchange.js';
+import finalizeAuctions from './utilities/FinalizeAuctions.js';
 // #endregion 
 // #region Szerver meghatározása
 // és middleware-ek beállítása
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// #region Biztonsági middleware-ek beállítása
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "https:"],
+        },
+    },
+}));
+// #endregion
+// #region Általános middleware-ek beállítása
+
 const corsOptions = {
-    origin: [configs.server.domain()],
+    origin: [Configs.server.domain()],
     credentials: true,
 };
 app.use(cors(corsOptions));
 app.use(cookieParser());
 app.use(express.json());
 
+// #region Statikus fájlok kiszolgálása
+app.use('/media/cars', express.static(path.join(__dirname, '../media/cars')));
+app.use('/media/users', express.static(path.join(__dirname, '../media/users')));
+// #endregion
 
+// Cookie kezelő middleware
 
 app.use(cookieMiddleware);
 // #endregion
@@ -91,5 +115,14 @@ az internetes forgalom)
 */
 cron.schedule('30 3 * * *', async () => {
     await FetchExchanges();
+});
+// #endregion
+
+/*
+#region Aukciók lezárása és nyertesek kiválasztása
+Minden percben ellenőrzi a lejárt aukciókat
+*/
+cron.schedule('* * * * *', async () => {
+    await finalizeAuctions();
 });
 // #endregion
