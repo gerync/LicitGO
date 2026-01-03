@@ -13,7 +13,8 @@ export default async function AddCarController(req, res) {
 
     // #region Ellenőrzés: ownertoken megléte
     if (!ownertoken) {
-        throw new Error([ lang === 'HU' ? 'Hiányzó tulajdonos token.' : 'Missing owner token.', 400 ]);
+        pool.releaseConnection(conn);
+        throw new Error([ lang === 'HU' ? 'Nincs bejelentkezve.' : 'Not logged in.', 401 ]);
     }
 
     try {
@@ -70,7 +71,6 @@ export default async function AddCarController(req, res) {
         // #region Válasz visszaadása
         pool.releaseConnection(conn);
         return res.status(201).json({
-            success: true,
             message: lang === 'HU' ? 'Autó és képek sikeresen hozzáadva.' : 'Car and images added successfully.',
             carId: carId,
             imageCount: images.length

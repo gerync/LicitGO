@@ -4,6 +4,7 @@ import Configs from '../../configs/Configs.js';
 
 export default async function ListAuctionsController(req, res) {
     const currency = req.currency;
+    const lang = req.lang;
     const page = parseInt(req.page);
     const limit = parseInt(req.limit);
     const offset = (page - 1) * limit;
@@ -60,8 +61,9 @@ export default async function ListAuctionsController(req, res) {
             whereConditions.push('auctions.reservepriceUSD <= ?');
             params.push(filters.maxReservePrice);
         }
+        // #endregion
 
-        // Aukció státusz szűrő (upcoming, ongoing, ended)
+        // #region Aukció státusz szűrő hozzáadása
         if (filters.status === 'upcoming') {
             whereConditions.push('auctions.starttime > NOW()');
         } else if (filters.status === 'ongoing') {
@@ -70,7 +72,7 @@ export default async function ListAuctionsController(req, res) {
             whereConditions.push('auctions.endtime < NOW()');
         }
 
-        // Ár szűrők a jelenlegi ár alapján (legmagasabb licit vagy kezdőár)
+        // #region Ár szűrők a jelenlegi ár alapján (legmagasabb licit vagy kezdőár)
         if (filters.minPrice !== null) {
             whereConditions.push('COALESCE(MAX(bids.bidamountUSD), auctions.startingpriceUSD) >= ?');
             params.push(filters.minPrice);
@@ -130,8 +132,35 @@ export default async function ListAuctionsController(req, res) {
         params.push(limit, offset);
         const [rows] = await conn.query(query, params);
         
-        const auctions = [];
+        // #region Összes eredmény számlálása a lapozáshoz
+        const countQuery = `
+            SELECT COUNT(DISTINCT auctions.id) as total
+            FROM auctions 
+            INNER JOIN cars ON auctions.carid = cars.id 
+            INNER JOIN users ON cars.ownertoken = users.usertoken 
+            LEFT JOIN bids ON auctions.id = bids.auctionid 
+            ${whereClause}
+        `;
+        const [countResult] = await conn.query(countQuery, params.slice(0, -2)); // Remove limit and offset
+        const totalResults = countResult[0].total;
+        const totalPages = Math.ceil(totalResults / limit);
+        // #endregion
+        // #region Ár átváltása a kért pénznemre
+        const pricesToConvert = [];
         for (const row of rows) {
+            const currentPrice = row.currentPrice || row.startingpriceUSD;
+            pricesToConvert.push(currentPrice, row.reservepriceUSD);
+        }
+        const convertedPrices = await Promise.all(
+            pricesToConvert.map(price => convert(price, 'USD', currency))
+        );
+        // #endregion
+        // #region Válasz összeállítása
+        const auctions = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const priceIndex = i * 2;
+            
             // #region Képek feldolgozása
             let images = [];
             try {
@@ -143,20 +172,37 @@ export default async function ListAuctionsController(req, res) {
             
             const currentPrice = row.currentPrice || row.startingpriceUSD;
             
+            // #region Állapot és hátralévő idő kiszámítása
+            const now = new Date();
+            const start = new Date(row.starttime);
+            const end = new Date(row.endtime);
+            let status, timeRemaining = null;
+            
+            if (now < start) {
+                status = lang === 'HU' ? 'Leendő' : 'upcoming';
+                timeRemaining = Math.floor((start - now) / 1000);
+            } else if (now >= start && now <= end) {
+                status = lang === 'HU' ? 'Folyamatban' : 'ongoing';
+                timeRemaining = Math.floor((end - now) / 1000);
+            } else {
+                status = lang === 'HU' ? 'Lezárt' : 'ended';
+                timeRemaining = 0;
+            }
+            
+            // Reserve price met check
+            const reserveMet = row.reservepriceUSD ? currentPrice >= row.reservepriceUSD : true;
+            
             auctions.push({
                 auctionId: row.id,
                 carId: row.carid,
-                currentPrice: await convert(currentPrice, 'USD', currency),
-                reservePriceUSD: await convert(row.reservepriceUSD, 'USD', currency),
+                currentPrice: convertedPrices[priceIndex],
+                reservePriceUSD: convertedPrices[priceIndex + 1],
+                reserveMet: reserveMet,
                 bidCount: row.bidCount || 0,
                 starttime: row.starttime,
-                status: function() {
-                    const now = new Date();
-                    if (now < row.starttime) return 'upcoming';
-                    if (now >= row.starttime && now <= row.endtime) return 'ongoing';
-                    return 'ended';
-                },
                 endtime: row.endtime,
+                status: status,
+                timeRemaining: timeRemaining,
                 car: {
                     manufacturer: row.manufacturer,
                     model: row.model,
@@ -168,27 +214,27 @@ export default async function ListAuctionsController(req, res) {
                     fueltype: row.fueltype,
                     transmission: row.transmission,
                     bodytype: row.bodytype,
-                    color: row.color,
-                    doors: row.doors,
-                    seats: row.seats,
-                    vin: row.vin,
-                    maxspeedKMH: row.maxspeedKMH,
-                    zeroToHundredSec: row.zeroToHundredSec,
-                    weightKG: row.weightKG,
-                    owner: row.usertag,
                     mainImagepath: images[0] ? `${Configs.server.domain}/media/cars/${images[0]}` : null
                 }
             });
         }
 
-        pool.releaseConnection(conn);
         return res.status(200).json({
             success: true,
-            auctions: auctions
+            auctions: auctions,
+            pagination: {
+                currentPage: page,
+                totalPages: totalPages,
+                totalResults: totalResults,
+                resultsPerPage: limit,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1
+            }
         });
 
     } catch (error) {
-        pool.releaseConnection(conn);
         throw error;
+    } finally {
+        conn.release();
     }
 }

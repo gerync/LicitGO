@@ -11,7 +11,7 @@ export default async function placeBidController(req, res) {
     // #region Aukció lekérése
     const [auctionRows] = await conn.query('SELECT * FROM auctions WHERE id = ?', [auctionID]);
     if (auctionRows.length === 0) {
-        throw new Error(lang === 'HU' ? 'Az aukció nem található.' : 'Auction not found.');
+        throw new Error(lang === 'HU' ? 'Az aukció nem található.' : 'Auction not found.', 404);
     }
     const auction = auctionRows[0];
     // #endregion
@@ -24,24 +24,24 @@ export default async function placeBidController(req, res) {
     // #endregion
     // #region Licit ellenőrzése
     if (bidAmountUSD <= currentMaxBid) {
-        throw new Error(lang === 'HU' ? 'A licit összegének nagyobbnak kell lennie a jelenlegi legmagasabb licitnél.' : 'Bid amount must be higher than the current highest bid.');
+        throw new Error(lang === 'HU' ? 'A licit összegének nagyobbnak kell lennie a jelenlegi legmagasabb licitnél.' : 'Bid amount must be higher than the current highest bid.', 400);
     }
     const now = new Date();
     const auctionStart = new Date(auction.starttime);
     const auctionEnd = new Date(auction.endtime);
     if (now < auctionStart) {
-        throw new Error(lang === 'HU' ? 'Az aukció még nem kezdődött el.' : 'The auction has not started yet.');
+        throw new Error(lang === 'HU' ? 'Az aukció még nem kezdődött el.' : 'The auction has not started yet.', 400);
     }
     if (now > auctionEnd) {
-        throw new Error(lang === 'HU' ? 'Az aukció már lejárt.' : 'The auction has already ended.');
+        throw new Error(lang === 'HU' ? 'Az aukció már lejárt.' : 'The auction has already ended.', 400);
     }
     // #endregion
     // #region Licit rögzítése az adatbázisban
-    await conn.query('INSERT INTO bids (auctionid, userid, amount) VALUES (?, ?, ?)', [auctionID, usertoken, bidAmountUSD]);
+    await conn.query('INSERT INTO bids (auctionid, bidder, bidamountUSD) VALUES (?, ?, ?)', [auctionID, usertoken, bidAmountUSD]);
     // #endregion
     conn.release();
     // #region Válasz küldése
-    res.status(200).json({
+    return res.status(200).json({
         message: lang === 'HU' ? 'Licit sikeresen leadva.' : 'Bid placed successfully.',
         auctionID: auctionID,
         bidAmount: bidamount,

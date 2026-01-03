@@ -48,7 +48,7 @@ export default function errorHandler(err, req, res, next) {
     // #endregion
     // #region Hibainformáció naplózása csak szerveroldali hibáknál
     if (status >= 500) {
-        coloredlog(err?.stack || err, colors.error-stack);
+        coloredlog(err?.stack || err, colors['error-stack'] || colors.error);
     }
     // #endregion
 
