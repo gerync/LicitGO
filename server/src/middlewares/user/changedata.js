@@ -1,11 +1,15 @@
 import regexes from '../../utilities/Regexes.js';
-import ObjectLength from '../../utilities/ObjectLength.js';
 
 export default function changeDataMiddleware(req, res, next) {
     // #region Nyelvi beállítás sütiből, kérés test paraméterek kiemelése, legalább egy módosítható mező kötelező
     const lang = req.lang;
-    let { usertag, fullname, mobile, gender } = req.body;
-    if (!usertag && !fullname && !mobile && !gender) {
+    let { usertag, fullname, mobile, gender, removePfp } = req.body;
+    const hasPfpFile = Boolean(req.file);
+    const removePfpFlag = removePfp === true || removePfp === 'true' || removePfp === '1';
+    req.body.removePfp = removePfpFlag;
+
+    const hasTextChange = Boolean(usertag || fullname || mobile || gender);
+    if (!hasTextChange && !hasPfpFile && !removePfpFlag) {
         throw new Error(lang === 'HU' ? 'Nincs megváltoztatandó adat megadva.' : 'No data to change provided.', 400);
     }
     // #endregion
@@ -29,12 +33,11 @@ export default function changeDataMiddleware(req, res, next) {
     }
     // #endregion
 
-    // #region Módosításra küldött paraméterek száma (1-4 között) ellenőrzése
-    if (ObjectLength(req.body, 1, 4) == -1) {
-        throw new Error(lang === 'HU' ? 'Nincs megváltoztatandó adat megadva.' : 'No data to change provided.', 400);
-    }
-    if (ObjectLength(req.body, 1, 4) == 1) {
-        throw new Error(lang === 'HU' ? 'Túl sok adat lett megadva.' : 'Too many data provided.', 400);
+    // #region Extra mezők tiltása (removePfp engedélyezett)
+    const allowedKeys = ['usertag', 'fullname', 'mobile', 'gender', 'removePfp'];
+    const invalidKeys = Object.keys(req.body).filter(key => !allowedKeys.includes(key));
+    if (invalidKeys.length > 0) {
+        throw new Error(lang === 'HU' ? 'Érvénytelen mező található a kérésben.' : 'Invalid field in request.', 400);
     }
     // #endregion
 
@@ -53,5 +56,6 @@ export default function changeDataMiddleware(req, res, next) {
     }
     // #endregion
 
+    // removePfpFlag true and new file together is treated as replace, so no extra validation here
     next();
 }

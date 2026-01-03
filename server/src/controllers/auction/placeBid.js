@@ -9,7 +9,7 @@ export default async function placeBidController(req, res) {
     const conn = await pool.getConnection();
     const currency = req.currency;
     // #region Aukció lekérése
-    const [auctionRows] = await conn.query('SELECT * FROM auctions WHERE id = ?', [auctionID]);
+    const [auctionRows] = await conn.query('SELECT * FROM auctions INNER JOIN cars ON auctions.carid = cars.id WHERE auctions.id = ?', [auctionID]);
     if (auctionRows.length === 0) {
         throw new Error(lang === 'HU' ? 'Az aukció nem található.' : 'Auction not found.', 404);
     }
@@ -20,11 +20,17 @@ export default async function placeBidController(req, res) {
     // #endregion
     // #region Aktuális legmagasabb licit lekérése
     const [bidRows] = await conn.query('SELECT MAX(amount) AS maxBid, starttime, endtime FROM bids WHERE auctionid = ?', [auctionID]);
+    if (usertoken === auction.ownertoken) {
+        throw new Error(lang === 'HU' ? 'Nem licitálhatsz a saját aukcióidra.' : 'You cannot bid on your own auctions.', 400);
+    }
     const currentMaxBid = bidRows[0].maxBid || 0;
     // #endregion
     // #region Licit ellenőrzése
     if (bidAmountUSD <= currentMaxBid) {
         throw new Error(lang === 'HU' ? 'A licit összegének nagyobbnak kell lennie a jelenlegi legmagasabb licitnél.' : 'Bid amount must be higher than the current highest bid.', 400);
+    }
+    if (bidAmountUSD < auction.startingpriceUSD) {
+        throw new Error(lang === 'HU' ? 'A licit összegének el kell érnie a kezdő licit összegét.' : 'Bid amount must meet the starting bid amount.', 400);
     }
     const now = new Date();
     const auctionStart = new Date(auction.starttime);
