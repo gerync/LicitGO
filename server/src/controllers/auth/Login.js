@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 import configs from '../../configs/Configs.js';
 import { decryptData } from '../../utilities/Encrypt.js';
-import { hashEmail, hashMobile } from '../../utilities/Hash.js';
+import hashdata from '../../utilities/Hash.js';
 import pool from '../../database/DB.js';
 
 // Bejelentkezés: azonosítás, jelszó ellenőrzés és sütik kiállítása
@@ -20,8 +20,8 @@ export default async function LoginController(req, res) {
     
     // Ha nincs felhasználónév találat, email és mobil hash alapján keres
     if (rows.length === 0) {
-        const emailHash = hashEmail(identifier);
-        const mobileHash = hashMobile(identifier);
+        const emailHash = hashdata(identifier);
+        const mobileHash = hashdata(identifier);
         [rows] = await conn.query('SELECT users.usertoken, users.usertag, users.passwordhash, tfa.enabled as tfaenabled, tfa.secret as tfasecret FROM users LEFT JOIN tfa ON users.usertoken = tfa.usertoken WHERE users.email_hash = ? OR users.mobile_hash = ?', [emailHash, mobileHash]);
     }
     

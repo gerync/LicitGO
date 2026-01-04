@@ -54,11 +54,14 @@ const style = {
 };
 
 export default function implementEmailStyle(htmlContent) {
+    // Mivel az emailek nem támogatják a külső vagy beágyazott CSS-t, minden stílust inline kell alkalmazni
+    // #region Stílusok inline alkalmazása az email HTML tartalmára
     let updatedContent = htmlContent.replace('class="body"', `style="${style.body}"`);
     updatedContent = updatedContent.replace('class="header"', `style="${style.header}"`);
     updatedContent = updatedContent.replace('class="footer"', `style="${style.footer}"`);
     updatedContent = updatedContent.replace('class="code"', `style="${style.code}"`);
     updatedContent = updatedContent.replace('class="content"', `style="${style.content}"`);
     updatedContent = updatedContent.replace('class="link"', `style="${style.link}"`);
+    // #endregion
     return updatedContent;
 }

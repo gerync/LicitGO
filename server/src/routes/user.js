@@ -9,6 +9,7 @@ import isLoggedIn from '../middlewares/auth/isLoggedIn.js';
 
 import changeDataMiddleware from '../middlewares/user/changedata.js';
 import { changeDataController } from '../controllers/user/changedata.js';
+import { uploadPfpImage } from '../utilities/ManageImages.js';
 
 import userSettingsMiddleware from '../middlewares/user/settings.js';
 import { setUserSettings } from '../controllers/user/settings.js';
@@ -54,8 +55,9 @@ const RL = {
 // #region Router létrehozása
 const router = express.Router();
 // #endregion
+// #region Útvonalak definiálása
 // #region Felhasználói adatok módosítása
-router.put('/changedata', [isLoggedIn, RL.changeData, changeDataMiddleware], changeDataController);
+router.put('/changedata', [isLoggedIn, RL.changeData, uploadPfpImage.single('pfp'), changeDataMiddleware], changeDataController);
 // #endregion
 // #region Felhasználói beállítások módosítása
 router.put('/settings', [RL.userSettings, userSettingsMiddleware], setUserSettings);
@@ -71,6 +73,7 @@ router.post('/password/reset', [RL.passwordReset, PasswordResetMiddleware], Pass
 // #endregion
 // #region Jelszó módosítása bejelentkezett felhasználó számára
 router.put('/password/change', [isLoggedIn, changePasswordMiddleware], changePasswordController);
+// #endregion
 // #endregion
 // #region Exportálás
 export default router;
