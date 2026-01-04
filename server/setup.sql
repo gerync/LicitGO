@@ -58,6 +58,11 @@ CREATE TABLE IF NOT EXISTS cars (
     factoryExtras TEXT,
     features TEXT,
     ownertoken VARCHAR(512) NOT NULL,
+    images JSON,
+    INDEX idx_manufacturer (manufacturer),
+    INDEX idx_modelyear (modelyear),
+    INDEX idx_fueltype (fueltype),
+    INDEX idx_bodytype (bodytype),
     FOREIGN KEY (ownertoken) REFERENCES users(usertoken) ON DELETE CASCADE
 );
 
@@ -68,10 +73,14 @@ CREATE TABLE IF NOT EXISTS auctions (
     reservepriceUSD DECIMAL(10, 2),
     starttime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     endtime DATETIME NOT NULL,
-    status ENUM('upcoming', 'active', 'completed', 'cancelled') DEFAULT 'active' NOT NULL,
     winner VARCHAR(512),
+    INDEX idx_starttime (starttime),
+    INDEX idx_endtime (endtime),
+    INDEX idx_status (starttime, endtime),
     FOREIGN KEY (carid) REFERENCES cars(id) ON DELETE CASCADE,
-    FOREIGN KEY (winner) REFERENCES users(usertoken) ON DELETE SET NULL
+    FOREIGN KEY (winner) REFERENCES users(usertoken) ON DELETE SET NULL,
+    CONSTRAINT chk_auction_times CHECK (endtime > starttime),
+    CONSTRAINT chk_reserve_price CHECK (reservepriceUSD IS NULL OR reservepriceUSD >= startingpriceUSD)
 );
 
 CREATE TABLE IF NOT EXISTS bids (
@@ -80,17 +89,10 @@ CREATE TABLE IF NOT EXISTS bids (
     bidder VARCHAR(512) NOT NULL,
     bidamountUSD DECIMAL(10, 2) NOT NULL,
     bidtime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_auctionid (auctionid),
+    INDEX idx_bidamount (bidamountUSD),
     FOREIGN KEY (auctionid) REFERENCES auctions(id) ON DELETE CASCADE,
     FOREIGN KEY (bidder) REFERENCES users(usertoken) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS carimages (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    carid INT NOT NULL,
-    filepath VARCHAR(255) NOT NULL,
-    uploadedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    orderindex INT DEFAULT 0 CHECK (orderindex >= 0 AND orderindex < 50),
-    FOREIGN KEY (carid) REFERENCES cars(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS emailcodes (

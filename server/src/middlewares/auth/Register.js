@@ -80,7 +80,7 @@ export default function RegisterMiddleware(req, res, next) {
     }
     // #endregion
 
-    // #region Regex pattern ellenőrzés: usertag/email/fullname/mobile formátum, jelszó komplexitas (hossz, kis/nagybetu, digit, speciális), nem hossz (max 10)
+    // #region Regex minta ellenőrzés: usertag/email/fullname/mobile formátum, jelszó komplexitas (hossz, kis/nagybetu, digit, speciális), nem hossza
     if (!regexes.usertag.test(usertag)) {
         throw new Error([ lang === 'HU' ? 'A felhasználónév érvénytelen formátumú.' : 'Invalid usertag format.', 400 ]);
     }

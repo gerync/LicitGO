@@ -3,89 +3,93 @@ import crypto from 'crypto';
 
 import pool from '../../database/DB.js';
 import { encryptData } from '../../utilities/Encrypt.js';
-import { hashEmail, hashMobile } from '../../utilities/Hash.js';
+import hashdata from '../../utilities/Hash.js';
+import { deletePfpFile } from '../../utilities/ManageImages.js';
 
-// Új felhasználó regisztrációja, ütközések és egyedi token biztosítása
+// New user registration with optional profile picture
 export default async function RegisterController(req, res) {
-    // #region Sütik és kérés testéből az összes szükséges felhasználói adat kiemelése, nyelvi beállítás
     const lang = req.lang;
     const currency = req.cookies.currency || 'USD';
     const darkmode = req.cookies.darkmode || 'false';
     const { usertag, password, email, fullname, mobile, gender, birthdate } = req.body;
+    const pfpFile = req.file;
     const conn = await pool.getConnection();
-    // #endregion
 
-    // #region Jelszó Argon2 hash-gelése, email/teljes név/telefonszám AES-256 titkosítása és IV generálása
     const passwordhash = await argon.hash(password);
     const encryptedEmail = encryptData(email);
     const encryptedFullname = encryptData(fullname);
     const encryptedMobile = encryptData(mobile);
-    const emailHash = hashEmail(email);
-    const mobileHash = hashMobile(mobile);
-    // #endregion
+    const emailHash = hashdata(email);
+    const mobileHash = hashdata(mobile);
 
-    // #region Adatbázis lekérdezés: email, felhasználónév, telefonszám egyediségének ellenőrzése, hibák visszaadása
     const insertQuery = 'INSERT INTO users (usertag, passwordhash, email, email_hash, fullname, mobile, mobile_hash, gender, birthdate, usertoken) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     let usertoken = crypto.randomBytes(32).toString('hex');
     usertoken = encryptData(usertoken);
-    const params = [usertag, passwordhash, encryptedEmail, emailHash, encryptedFullname, encryptedMobile, mobileHash, gender, birthdate, usertoken];
+
+    const settingsQuery = 'INSERT INTO settings (usertoken, language, darkmode, currency) VALUES (?, ?, ?, ?)';
+    const buildSettingsParams = () => [usertoken, lang, darkmode === 'true' ? 1 : 0, currency];
+
+    const mapDuplicateError = (error) => {
+        if (error.code !== 'ER_DUP_ENTRY') {
+            return null;
+        }
+        if (error.message.includes("'email'") || error.message.includes("'email_hash'")) {
+            return new Error([ lang === 'HU' ? 'Ez az email cim mar hasznalatban van.' : 'This email address is already in use.', 409 ]);
+        }
+        if (error.message.includes("'usertag'")) {
+            return new Error([ lang === 'HU' ? 'Ez a felhasznalonev mar foglalt.' : 'This usertag is already taken.', 409 ]);
+        }
+        if (error.message.includes("'mobile'") || error.message.includes("'mobile_hash'")) {
+            return new Error([ lang === 'HU' ? 'Ez a telefonszam mar hasznalatban van.' : 'This mobile number is already in use.', 409 ]);
+        }
+        return null;
+    };
+
     try {
-        await conn.query(insertQuery, params);
+        let inserted = false;
+        let insertParams = [usertag, passwordhash, encryptedEmail, emailHash, encryptedFullname, encryptedMobile, mobileHash, gender, birthdate, usertoken];
+
+        while (!inserted) {
+            try {
+                await conn.query(insertQuery, insertParams);
+                inserted = true;
+            }
+            catch (error) {
+                if (error.code === 'ER_DUP_ENTRY' && error.message.includes("'usertoken'")) {
+                    usertoken = encryptData(crypto.randomBytes(32).toString('hex'));
+                    insertParams[insertParams.length - 1] = usertoken;
+                    continue;
+                }
+                const mapped = mapDuplicateError(error);
+                if (mapped) {
+                    throw mapped;
+                }
+                throw error;
+            }
+        }
+
+        await conn.query(settingsQuery, buildSettingsParams());
+
+        if (pfpFile) {
+            await conn.query('INSERT INTO profpics (usertoken, filename) VALUES (?, ?)', [usertoken, pfpFile.filename]);
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: lang === 'HU' ? 'Sikeres regisztracio.' : 'Registration successful.',
+        });
     }
     catch (error) {
-        pool.releaseConnection(conn);
-        // #region Ütközés kezelése: egyedi mezők (email, usertag, mobile, usertoken) alapján megfelelő hibák dobása
-        if (error.code === 'ER_DUP_ENTRY') {
-            if (error.message.includes('users.email')) {
-                throw new Error([ lang === 'HU' ? 'Ez az email cím már használatban van.' : 'This email address is already in use.', 409 ]);
-            }
-            else if (error.message.includes('users.email_hash')) {
-                throw new Error([ lang === 'HU' ? 'Ez az email cím már használatban van.' : 'This email address is already in use.', 409 ]);
-            }
-            else if (error.message.includes('users.usertag')) {
-                throw new Error([ lang === 'HU' ? 'Ez a felhasználónév már foglalt.' : 'This usertag is already taken.', 409 ]);
-            }
-            else if (error.message.includes('users.mobile')) {
-                throw new Error([ lang === 'HU' ? 'Ez a telefonszám már használatban van.' : 'This mobile number is already in use.', 409 ]);
-            }
-            else if (error.message.includes('users.mobile_hash')) {
-                throw new Error([ lang === 'HU' ? 'Ez a telefonszám már használatban van.' : 'This mobile number is already in use.', 409 ]);
-            }
-            // #region Ütközés a usertoken-nél - új token generálása és újrapróbálkozások az adatbázis beszúrással
-            else if (error.message.includes('users.usertoken')) {
-                let isInserted = false;
-                while (!isInserted) {
-                    try {
-                        usertoken = crypto.randomBytes(32).toString('hex');
-                        usertoken = encryptData(usertoken);
-                        const retryParams = [usertag, passwordhash, encryptedEmail, encryptedFullname, encryptedMobile, gender, birthdate, usertoken];
-                        await conn.query(insertQuery, retryParams);
-                        isInserted = true;
-                    } catch (retryError) {
-                        if (retryError.code !== 'ER_DUP_ENTRY' || !retryError.message.includes('users.usertoken')) {
-                            throw retryError;
-                        }
-                    }
-                }
-            }
-            // #endregion
+        if (pfpFile) {
+            await deletePfpFile(pfpFile.filename).catch(() => {});
         }
-        // #endregion
+        const mapped = mapDuplicateError(error);
+        if (mapped) {
+            throw mapped;
+        }
         throw error;
     }
-    // #endregion
-
-    // #region Felhasználói beállítások létrehozása alapértelmezett értékekkel (nyelv, sötét mód, pénznem)
-    const settingsQuery = 'INSERT INTO settings (usertoken, language, darkmode, currency) VALUES (?, ?, ?, ?)';
-    const settingsParams = [usertoken, lang, darkmode === 'true' ? 1 : 0, currency];
-    await conn.query(settingsQuery, settingsParams);
-    // #endregion
-    pool.releaseConnection(conn);
-
-    // #region Sikeres regisztrációs válasz visszaadása (201)
-    return res.status(201).json({
-        success: true,
-        message: lang === 'HU' ? 'Sikeres regisztráció.' : 'Registration successful.',
-    });
-    // #endregion
+    finally {
+        pool.releaseConnection(conn);
+    }
 }
