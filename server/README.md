@@ -7,34 +7,43 @@ Authentication: cookie-based (`auth` JWT). Protected endpoints require a valid `
 ## Auth
 | Method | Path | Body | Success | Errors |
 | --- | --- | --- | --- | --- |
-| POST | `/auth/register` | `{ "usertag": string (3-32, lowercase/digit/_), "password": string (8-32, lower+upper+digit+special), "passwordconfirm": string, "email": string, "fullname": string, "mobile": string, "gender": string<=10, "birthdate": YYYY-MM-DD }` | 201 `{ message }` | 400 validation/field count/password mismatch, 409 usertag/email/mobile taken, 429 rate limit, 500 server |
+| POST | `/auth/register` | `{ "usertag": string (3-32, lowercase/digit/_), "password": string (8-32, lower+upper+digit+special), "passwordconfirm": string, "email": string, "fullname": string, "mobile": string, "gender": string<=10, "birthdate": YYYY-MM-DD }` + optional `pfp` file | 201 `{ message }` | 400 validation/field count/password mismatch, 409 usertag/email/mobile taken, 429 rate limit, 500 server |
 | POST | `/auth/login` | `{ "identifier": string (usertag/email/mobile), "password": string, "keeplogin"?: boolean }` | 200 `{ message }` + cookies (`auth` HTTP-only, `usertag`, `language`, `darkmode`, `currency`) | 203 `{ message, temp_token }` if 2FA required (no cookies set); 400 already logged in/invalid fields; 401 wrong password; 404 not found; 429 limit |
 | POST | `/auth/logout` | (none) | 200 `{ message }` | 400 not logged in |
-| POST | `/auth/verify-2fa` | `{ "code": string (6 digits) }` (only field) | 200 `{ message }` + cookies (`auth`, `language`, `darkmode`, `currency`) | 400 missing/invalid code or 2FA disabled; 401 invalid/expired temp token or code; 403 token not `tfa_required`; 404 not found; 429 limit; 500 server |
 
-Note: Rate limits – `/auth/register` 5/15m, `/auth/login` 10/15m, `/auth/verify-2fa` 10/15m, `/auction/addcar` 10/15m → 429 `{ error }`.
+Note: Rate limits – `/auth/register` 5/15m, `/auth/login` 10/15m → 429 `{ error }`.
 
 ## User (requires auth)
 | Method | Path | Body / Params | Success | Errors |
 | --- | --- | --- | --- | --- |
-| PUT | `/user/changedata` | `{ usertag?, fullname?, mobile?, gender? }` (at least 1) | 200 `{ message }` | 400 missing/too many fields or format error; 401 no/invalid token; 409 usertag/mobile taken; 500 |
-| PUT | `/user/settings` | `{ language?, darkmode?, currency? }` (at least 1; language: EN/HU; darkmode: bool; currency: USD/EUR/HUF) | 200 `{ message }` + locale cookies refreshed | 400 invalid/missing setting; 401 invalid/expired token |
-| POST | `/user/tfa/toggle` | `{ enable: boolean }` | 200 `{ message, otpauthURL? }` | 400 missing/extra/invalid field; 401 no/invalid token |
-| GET | `/user/profile/:usertag` | `:usertag` path (fallback to `usertag` cookie) | 200 profile JSON (depends on publicContacts) | 400 missing usertag; 404 not found |
+| PUT | `/user/changedata` | `{ usertag?, fullname?, mobile?, gender? }` (at least 1) + optional `pfp` file | 200 `{ message }` | 400 missing/too many fields or format error; 401 no/invalid token; 409 usertag/mobile taken; 429 limit; 500 |
+| PUT | `/user/settings` | `{ language?, darkmode?, currency? }` (at least 1; language: EN/HU; darkmode: bool; currency: USD/EUR/HUF) | 200 `{ message }` + locale cookies refreshed | 400 invalid/missing setting; 401 invalid/expired token; 429 limit |
+| GET | `/user/profile/:usertag` | `:usertag` path (fallback to `usertag` cookie) | 200 profile JSON (depends on publicContacts) | 400 missing usertag; 404 not found; 429 limit |
+| POST | `/user/password/reset/request` | `{ email: string }` or `{ mobile: string }` or `{ identifier: string }` | 200 `{ message }` (always returns 200 even if user not found) | 400 invalid/missing field; 429 limit; 500 server |
+| POST | `/user/password/reset` | `{ token: string, password: string, passwordconfirm: string }` | 200 `{ message }` | 400 invalid fields/password mismatch; 401 invalid/expired token; 429 limit; 500 server |
+| PUT | `/user/password/change` | `{ currentPassword: string, newPassword: string, confirmPassword: string }` | 200 `{ message }` | 400 invalid fields/password mismatch; 401 no/invalid token or wrong current password; 500 server |
 
 Profile responses:
 - `publicContacts = false`: `{ fullname, usertag, gender, birthdate (year), type, email: hidden, mobile: hidden }`
 - `publicContacts = true`: `{ fullname, usertag, email, mobile, gender, birthdate (ISO date), type, auctionCount, bidCount }`
 
-## Auction
-> The auction router exists but is not mounted in `server.js`. If mounted under `/auction`, the following applies:
+Rate limits: `/user/changedata` 10/5m, `/user/settings` 10/5m, `/user/profile` 30/1m, `/user/password/reset/request` 5/5m, `/user/password/reset` 5/5m
 
-| Method | Path | Body | Success | Errors |
+## Auction
+| Method | Path | Body / Params | Success | Errors |
 | --- | --- | --- | --- | --- |
-| POST | `/auction/addcar` | Required: `manufacturer` (<=100), `model` (<=150), `color` (<=50), `odometerKM` >=0, `modelyear` 1886..next year, `efficiency` 0–99.99, `efficiencyunit` HP/kW, `enginecapacity` >0, `fueltype` (gasoline/diesel/electric/hybrid/other), `transmission` (manual/automatic/semi-automatic/CVT/dual-clutch/other), `bodytype` (sedan/hatchback/SUV/coupe/convertible/wagon/van/truck/other), `doors` int>0, `seats` int>0, `vin` 17 chars (no I/O/Q); Optional: `emissionsGKM` >=0, `maxspeedKMH` >=0, `zeroToHundredSec` >=0, `weightKG` >=0, `factoryExtras` string, `features` object/JSON | 201 `{ success: true, message, carId }` | 400 validation/field count; 401 no auth; 409 VIN exists; 429 limit; 500 |
+| POST | `/auction/addcar` (requires auth) | Required: `manufacturer` (<=100), `model` (<=150), `color` (<=50), `odometerKM` >=0, `modelyear` 1886..next year, `efficiency` 0–99.99, `efficiencyunit` HP/kW, `enginecapacity` >0, `fueltype` (gasoline/diesel/electric/hybrid/other), `transmission` (manual/automatic/semi-automatic/CVT/dual-clutch/other), `bodytype` (sedan/hatchback/SUV/coupe/convertible/wagon/van/truck/other), `doors` int>0, `seats` int>0, `vin` 17 chars (no I/O/Q); Optional: `emissionsGKM` >=0, `maxspeedKMH` >=0, `zeroToHundredSec` >=0, `weightKG` >=0, `factoryExtras` string, `features` object/JSON + multiple car image files | 201 `{ success: true, message, carId }` | 400 validation/field count; 401 no auth; 409 VIN exists; 429 limit (5/5m); 500 |
+| POST | `/auction/addauction` (requires auth) | `{ carId: string, startingPrice: number, reservePrice?: number, startTime: ISO datetime, endTime: ISO datetime, description?: string }` | 201 `{ success: true, message, auctionId }` | 400 validation/invalid fields; 401 no auth; 404 car not found; 429 limit (10/5m); 500 |
+| POST | `/auction/placebid` (requires auth) | `{ auctionId: string, amount: number }` | 200 `{ success: true, message }` | 400 validation/bid too low; 401 no auth; 403 cannot bid on own auction; 404 auction not found; 429 limit (20/5m); 500 |
+| GET | `/auction/list` | Query params: `?page=1&limit=20&status=active&sort=endingSoon` etc. | 200 `{ auctions: [...], total, page, pages }` | 400 invalid query params; 429 limit (60/1m) |
+| GET | `/auction/:auctionId` | `:auctionId` path param | 200 auction details JSON | 400 invalid ID; 404 not found; 429 limit (60/1m) |
 
 ## Notes
-- Dates: prefer `YYYY-MM-DD`.
-- Auth cookie: returned by `/auth/login` or `/auth/verify-2fa` as `auth` (JWT). Required for protected routes.
-- 2FA: if `/auth/login` returns 203 with `temp_token`, place it into the `auth` cookie, then call `/auth/verify-2fa`.
+- Dates: prefer `YYYY-MM-DD` for birthdate; ISO datetime for auction times.
+- Auth cookie: returned by `/auth/login` as `auth` (JWT). Required for protected routes.
+  - The `auth` cookie is **httpOnly** (not accessible to JavaScript) and contains the JWT for server-side authentication.
+  - Frontend-readable cookies: `usertag`, `language`, `darkmode`, `currency` (set alongside `auth` on login).
+  - **Frontend usage**: Check `usertag` cookie to show logged-in UI, but always rely on API responses for actual authorization. A fake `usertag` cookie cannot bypass the httpOnly `auth` validation on protected endpoints.
+- 2FA: if `/auth/login` returns 203 with `temp_token`, server stores TFA information but no verify endpoint is currently implemented in routes.
+- File uploads: `/auth/register` and `/user/changedata` support `pfp` (profile picture); `/auction/addcar` supports multiple car images.
 - Unknown route: 404 `{ message: "Nem található" }`.
