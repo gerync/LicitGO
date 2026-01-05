@@ -13,6 +13,8 @@ import Logout from '../controllers/auth/Logout.js';
 
 import VerifyTFAcontroller from '../controllers/auth/VerifyTFA.js';
 import VerifyTFAMiddleware from '../middlewares/auth/VerifyTFA.js';
+import VerifyEmailController from '../controllers/auth/VerifyEmail.js';
+import VerifyEmailMiddleware from '../middlewares/auth/VerifyEmail.js';
 
 import { getRateLimitHandler } from '../utilities/RateLimitMessages.js';
 // ##endregion
@@ -31,6 +33,11 @@ const RL = {
         windowMs: 15 * 60 * 1000, // 15 perc
         max: 10, // IP-nként 10 kérés
         handler: getRateLimitHandler('login')
+    }),
+    verifyEmail: rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 10,
+        handler: getRateLimitHandler('verifyEmail')
     })
 };
 // #endregion
@@ -41,6 +48,8 @@ router.post('/register', RL.register, uploadPfpImage.single('pfp'), RegisterMidd
 router.post('/login', RL.login, LoginMiddleware, LoginController);
 
 router.post('/verify-tfa', VerifyTFAMiddleware, VerifyTFAcontroller);
+
+router.post('/verify-email', RL.verifyEmail, VerifyEmailMiddleware, VerifyEmailController);
 
 router.post('/logout', Logout);
 // #endregion

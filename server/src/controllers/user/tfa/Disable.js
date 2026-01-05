@@ -56,7 +56,7 @@ export async function DisableTwoFactorController(req, res) {
 
             // Kód mentése az adatbázisba 15 perces lejárattal
             await conn.query(
-                'INSERT INTO emailcodes (usertoken, code, expiresat, type) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), ?)',
+                'INSERT INTO emailcodes (usertoken, code, expiresat, type, newemail, newemail_hash) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), ?, NULL, NULL)',
                 [encryptedUsertoken, code, 'tfa-disable']
             );
 

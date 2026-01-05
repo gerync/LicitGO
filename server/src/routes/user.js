@@ -28,6 +28,8 @@ import { EnableTwoFactorController } from '../controllers/user/tfa/Enable.js';
 
 import { DisableTwoFactorMiddleware } from '../middlewares/user/tfa/Disable.js';
 import { DisableTwoFactorController } from '../controllers/user/tfa/Disable.js';
+import { requestEmailChangeMiddleware, verifyEmailChangeMiddleware } from '../middlewares/user/email/Change.js';
+import { requestEmailChange, verifyEmailChange } from '../controllers/user/email/Change.js';
 // #endregion
 // #region Rate limiterek
 const RL = {
@@ -65,6 +67,11 @@ const RL = {
         windowMs: 5 * 60 * 1000, // 5 perc
         max: 5, // IP-nként 5 kérés
         handler: getRateLimitHandler('disableTwoFactor')
+    }),
+    changeEmail: RateLimit({
+        windowMs: 5 * 60 * 1000,
+        max: 5,
+        handler: getRateLimitHandler('changeEmail')
     })
 };
 // #endregion
@@ -95,6 +102,10 @@ router.post('/tfa/enable', [isLoggedIn, RL.enableTwoFactor, EnableTwoFactorMiddl
 // #endregion
 // #region Kétlépcsős azonosítás letiltása
 router.post('/tfa/disable', [isLoggedIn, RL.disableTwoFactor, DisableTwoFactorMiddleware], DisableTwoFactorController);
+// #endregion
+// #region Email cím váltása
+router.post('/email/change/request', [isLoggedIn, RL.changeEmail, requestEmailChangeMiddleware], requestEmailChange);
+router.post('/email/change/verify', [isLoggedIn, RL.changeEmail, verifyEmailChangeMiddleware], verifyEmailChange);
 // #endregion
 // #endregion
 // #region Exportálás
