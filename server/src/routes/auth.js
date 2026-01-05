@@ -11,6 +11,9 @@ import LoginMiddleware from '../middlewares/auth/Login.js';
 
 import Logout from '../controllers/auth/Logout.js';
 
+import VerifyTFAcontroller from '../controllers/auth/VerifyTFA.js';
+import VerifyTFAMiddleware from '../middlewares/auth/VerifyTFA.js';
+
 import { getRateLimitHandler } from '../utilities/RateLimitMessages.js';
 // ##endregion
 // #region Router létrehozása
@@ -36,6 +39,8 @@ const RL = {
 router.post('/register', RL.register, uploadPfpImage.single('pfp'), RegisterMiddleware, RegisterController);
 
 router.post('/login', RL.login, LoginMiddleware, LoginController);
+
+router.post('/verify-tfa', VerifyTFAMiddleware, VerifyTFAcontroller);
 
 router.post('/logout', Logout);
 // #endregion
