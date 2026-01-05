@@ -3,6 +3,9 @@ import QRCode from 'qrcode';
 
 import pool from '../../../database/DB.js';
 import { encryptData } from '../../../utilities/Encrypt.js';
+import { decryptData } from '../../../utilities/Encrypt.js';
+import sendEmail from '../../../email/send.js';
+import Configs from '../../../configs/Configs.js';
 
 // Controller: 2FA engedélyezése - titkos kulcs generálása, QR kód létrehozása, adatbázisba mentés
 export async function EnableTwoFactorController(req, res) {
@@ -115,6 +118,20 @@ export async function EnableTwoFactorController(req, res) {
         );
 
         pool.releaseConnection(conn);
+
+        // Email értesítés küldése az engedélyezésről
+        const [[userRow]] = await pool.query('SELECT email, usertag FROM users WHERE usertoken = ?', [encryptedUsertoken]);
+        if (userRow?.email) {
+            const recipientEmail = decryptData(userRow.email);
+            const recipientLang = req.lang;
+            const subject = recipientLang === 'HU' ? 'Kétlépcsős azonosítás engedélyezve' : 'Two-factor authentication enabled';
+            const info = { usertag: userRow.usertag, code };
+            try {
+                await sendEmail(recipientEmail, subject, info, 'enable-2fa', recipientLang);
+            } catch (emailErr) {
+                // Ha az email értesítés sikertelen, a 2FA engedélyezés akkor is érvényes marad
+            }
+        }
 
         return res.status(200).json({
             message: lang === 'HU' ? 'Kétlépcsős azonosítás sikeresen engedélyezve.' : 'Two-factor authentication successfully enabled.'
