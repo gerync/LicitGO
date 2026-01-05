@@ -22,6 +22,12 @@ import { PasswordResetRequestController, PasswordResetController } from '../cont
 
 import changePasswordMiddleware from '../middlewares/user/password/change.js';
 import changePasswordController from '../controllers/user/password/change.js';
+
+import { EnableTwoFactorMiddleware } from '../middlewares/user/tfa/Enable.js';
+import { EnableTwoFactorController } from '../controllers/user/tfa/Enable.js';
+
+import { DisableTwoFactorMiddleware } from '../middlewares/user/tfa/Disable.js';
+import { DisableTwoFactorController } from '../controllers/user/tfa/Disable.js';
 // #endregion
 // #region Rate limiterek
 const RL = {
@@ -49,6 +55,16 @@ const RL = {
         windowMs: 5 * 60 * 1000, // 5 perc
         max: 5, // IP-nként 5 kérés
         handler: getRateLimitHandler('passwordReset')
+    }),
+    enableTwoFactor: RateLimit({
+        windowMs: 5 * 60 * 1000, // 5 perc
+        max: 10, // IP-nként 10 kérés
+        handler: getRateLimitHandler('enableTwoFactor')
+    }),
+    disableTwoFactor: RateLimit({
+        windowMs: 5 * 60 * 1000, // 5 perc
+        max: 5, // IP-nként 5 kérés
+        handler: getRateLimitHandler('disableTwoFactor')
     })
 };
 // #endregion
@@ -73,6 +89,12 @@ router.post('/password/reset', [RL.passwordReset, PasswordResetMiddleware], Pass
 // #endregion
 // #region Jelszó módosítása bejelentkezett felhasználó számára
 router.put('/password/change', [isLoggedIn, changePasswordMiddleware], changePasswordController);
+// #endregion
+// #region Kétlépcsős azonosítás engedélyezése
+router.post('/tfa/enable', [isLoggedIn, RL.enableTwoFactor, EnableTwoFactorMiddleware], EnableTwoFactorController);
+// #endregion
+// #region Kétlépcsős azonosítás letiltása
+router.post('/tfa/disable', [isLoggedIn, RL.disableTwoFactor, DisableTwoFactorMiddleware], DisableTwoFactorController);
 // #endregion
 // #endregion
 // #region Exportálás
