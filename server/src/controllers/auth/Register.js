@@ -5,6 +5,8 @@ import pool from '../../database/DB.js';
 import { encryptData } from '../../utilities/Encrypt.js';
 import hashdata from '../../utilities/Hash.js';
 import { deletePfpFile } from '../../utilities/ManageImages.js';
+import Configs from '../../configs/Configs.js';
+import sendEmail from '../../email/send.js';
 
 // New user registration with optional profile picture
 export default async function RegisterController(req, res) {
@@ -74,9 +76,22 @@ export default async function RegisterController(req, res) {
             await conn.query('INSERT INTO profpics (usertoken, filename) VALUES (?, ?)', [usertoken, pfpFile.filename]);
         }
 
+        // #region Regisztráció utáni email verifikációs kód küldése
+        const verificationCode = Math.floor(100000 + Math.random() * 900000); // 6 jegyű kód
+        const verificationExpiry = new Date(Date.now() + Configs.emailVerification.expiryMinutes * 60000);
+        await conn.query(
+            'INSERT INTO emailcodes (usertoken, code, type, expiresat, newemail, newemail_hash) VALUES (?, ?, ?, ?, NULL, NULL)',
+            [usertoken, verificationCode, 'verification', verificationExpiry]
+        );
+
+        const verificationSubject = lang === 'HU' ? 'Email megerősítés' : 'Verify your email';
+        const verificationInfo = { code: verificationCode, usertag };
+        await sendEmail(email, verificationSubject, verificationInfo, 'verification', lang);
+        // #endregion
+
         return res.status(201).json({
             success: true,
-            message: lang === 'HU' ? 'Sikeres regisztracio.' : 'Registration successful.',
+            message: lang === 'HU' ? 'Sikeres regisztracio. Kérjük, erősítse meg az email címét a kiküldött kóddal.' : 'Registration successful. Please verify your email address with the code we sent.',
         });
     }
     catch (error) {
