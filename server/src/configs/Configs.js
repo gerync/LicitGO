@@ -178,6 +178,16 @@ export default {
         // ↑ Jelszó visszaállító kód érvényességi ideje percben
     },
     // #endregion
+    // #region ===== EMAIL VERIFIKÁCIÓ / VÁLTÁS KONFIGURÁCIÓK =====
+    emailVerification: {
+        expiryMinutes: parseInt(process.env.EMAIL_VERIF_EXP_MINS || 30)
+        // ↑ Regisztráció utáni email hitelesítő kód érvényességi ideje percben
+    },
+    emailChange: {
+        expiryMinutes: parseInt(process.env.EMAIL_CHANGE_EXP_MINS || 15)
+        // ↑ Email-cím váltási kód érvényességi ideje percben
+    },
+    // #endregion
     // #region ===== KÉPKEZELÉSI KONFIGURÁCIÓK =====
     images: {
         maxsizeMB: parseInt(process.env.IMG_MAX_SIZE_MB || 5),
