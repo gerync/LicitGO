@@ -41,5 +41,34 @@
             "USDEUR": 0.8529512111907198
         },
         "success": true
+<<<<<<< Updated upstream
+=======
+    },
+    {
+        "fetched_at": "2026-01-05 13:05:19",
+        "lastupdate": "2026. 01. 05. 01:00:01",
+        "rates": {
+            "EURUSD": 1.1716,
+            "EURHUF": 383.8603,
+            "USDHUF": 327.546,
+            "HUFUSD": 0.003053006295298981,
+            "HUFEUR": 0.002605114412717335,
+            "USDEUR": 0.8535336292249914
+        },
+        "success": true
+    },
+    {
+        "fetched_at": "2026-01-08 14:19:28",
+        "lastupdate": "2026. 01. 08. 01:00:01",
+        "rates": {
+            "EURUSD": 1.1684,
+            "EURHUF": 384.8578,
+            "USDHUF": 329.3506,
+            "HUFUSD": 0.00303627805748646,
+            "HUFEUR": 0.0025983623042069044,
+            "USDEUR": 0.8558712769599451
+        },
+        "success": true
+>>>>>>> Stashed changes
     }
 ]
