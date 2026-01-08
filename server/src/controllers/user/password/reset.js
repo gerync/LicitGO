@@ -27,7 +27,7 @@ export async function PasswordResetRequestController(req, res) {
         const code = Math.floor(100000 + Math.random() * 900000); // 6 jegyű kód
         const usertag = matchedUser.usertag;
         const expiryDate = new Date(Date.now() + Configs.passwordReset.expiryMinutes * 60000);
-        await conn.query('INSERT INTO emailcodes (usertoken, code, type, expiresat) VALUES (?, ?, ?, ?)', [matchedUser.usertoken, code, 'password-reset', expiryDate]);
+        await conn.query('INSERT INTO emailcodes (usertoken, code, type, expiresat, newemail, newemail_hash) VALUES (?, ?, ?, ?, NULL, NULL)', [matchedUser.usertoken, code, 'password-reset', expiryDate]);
         
         // Email küldése
         const subject = lang === 'HU' ? 'Jelszó visszaállító kód' : 'Password Reset Code';
