@@ -54,7 +54,7 @@ const corsOptions = {
     credentials: true,
 };
 app.use(cors(corsOptions));
-app.use(cookieParser());
+app.use(cookieParser(Configs.cookieSecret));
 app.use(express.json());
 
 // #region Statikus fájlok kiszolgálása
