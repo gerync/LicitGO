@@ -23,6 +23,7 @@ const swaggerDefinition = {
         { name: 'Auth', description: 'Registration and login' },
         { name: 'User', description: 'User profile and settings' },
         { name: 'Password', description: 'Password reset flows' },
+        { name: '2FA', description: 'Two-factor authentication management' },
         { name: 'Auction', description: 'Auction and car management' },
     ],
     components: {
@@ -77,6 +78,32 @@ const swaggerDefinition = {
                     message: { type: 'string' },
                     temp_token: { type: 'string', description: 'Short-lived token for completing 2FA' },
                 },
+            },
+            VerifyTfaRequest: {
+                type: 'object',
+                required: ['code'],
+                properties: {
+                    code: { type: 'string', example: '123456', description: '6-digit TOTP code' },
+                    keeplogin: { type: 'boolean', default: false },
+                },
+            },
+            EnableTfaResponse: {
+                type: 'object',
+                properties: {
+                    message: { type: 'string' },
+                    qrCode: { type: 'string', description: 'Base64 QR code data URL (only on initial request)' },
+                    secret: { type: 'string', description: 'TOTP secret (only on initial request)' },
+                },
+            },
+            DisableTfaRequest: {
+                type: 'object',
+                properties: {
+                    requestEmail: { type: 'boolean', description: 'Set to true to request email code' },
+                    tfaCode: { type: 'string', example: '123456', description: '6-digit TOTP code' },
+                    backupCode: { type: 'string', example: 'ABC123DEF456', description: '8-16 character backup code' },
+                    emailCode: { type: 'string', example: '123456', description: '6-digit email verification code' },
+                },
+                description: 'Provide ONE of: requestEmail=true, tfaCode, backupCode, or emailCode',
             },
             ChangeDataRequest: {
                 type: 'object',
@@ -379,6 +406,85 @@ const swaggerDefinition = {
                             'application/json': { schema: { $ref: '#/components/schemas/MessageResponse' } },
                         },
                     },
+                },
+            },
+        },
+        '/auth/verify-2fa': {
+            post: {
+                tags: ['Auth'],
+                summary: 'Verify 2FA code after login',
+                description: 'Complete login by verifying TOTP code. Requires temp_token from login response.',
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': { schema: { $ref: '#/components/schemas/VerifyTfaRequest' } },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: '2FA verified, auth cookie set',
+                        content: {
+                            'application/json': { schema: { $ref: '#/components/schemas/MessageResponse' } },
+                        },
+                    },
+                    401: { description: 'Invalid code or expired temp token', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+                    404: { description: '2FA not enabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+                },
+            },
+        },
+        '/user/tfa/enable': {
+            post: {
+                tags: ['2FA'],
+                summary: 'Enable 2FA for account',
+                description: 'Two-step process: 1) Request without code to get QR code, 2) Submit code to enable',
+                security: [{ cookieAuth: [] }],
+                requestBody: {
+                    required: false,
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                                properties: {
+                                    code: { type: 'string', example: '123456', description: 'Optional: 6-digit code to verify and enable' },
+                                },
+                            },
+                        },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: 'QR code generated or 2FA enabled',
+                        content: {
+                            'application/json': { schema: { $ref: '#/components/schemas/EnableTfaResponse' } },
+                        },
+                    },
+                    400: { description: 'Already enabled or invalid code format', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+                    401: { description: 'Invalid verification code', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+                },
+            },
+        },
+        '/user/tfa/disable': {
+            post: {
+                tags: ['2FA'],
+                summary: 'Disable 2FA for account',
+                description: 'Three methods: 1) Current 2FA code, 2) Backup code, or 3) Email verification code',
+                security: [{ cookieAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        'application/json': { schema: { $ref: '#/components/schemas/DisableTfaRequest' } },
+                    },
+                },
+                responses: {
+                    200: {
+                        description: '2FA disabled or email code sent',
+                        content: {
+                            'application/json': { schema: { $ref: '#/components/schemas/MessageResponse' } },
+                        },
+                    },
+                    400: { description: 'Not enabled or invalid input', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+                    401: { description: 'Invalid code', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
+                    404: { description: 'No active email code', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } } },
                 },
             },
         },
