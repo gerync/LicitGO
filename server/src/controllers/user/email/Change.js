@@ -3,6 +3,7 @@ import hashdata from '../../../utilities/Hash.js';
 import { encryptData, decryptData } from '../../../utilities/Encrypt.js';
 import sendEmail from '../../../email/send.js';
 import Configs from '../../../configs/Configs.js';
+import crypto from 'crypto';
 
 async function ensureEmailChangeColumns(conn) {
     const [hasNewEmail] = await conn.query("SHOW COLUMNS FROM emailcodes LIKE 'newemail'");
@@ -51,7 +52,7 @@ export async function requestEmailChange(req, res) {
         }
         const encryptedUsertoken = userRow.usertoken;
 
-        const code = Math.floor(100000 + Math.random() * 900000);
+        const code = crypto.randomInt(100000, 1000000);
         const expires = new Date(Date.now() + Configs.emailChange.expiryMinutes * 60000);
         await conn.query(
             'INSERT INTO emailcodes (usertoken, code, type, expiresat, newemail, newemail_hash, used) VALUES (?, ?, ?, ?, ?, ?, FALSE)',

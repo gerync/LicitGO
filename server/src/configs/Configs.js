@@ -83,7 +83,7 @@ export default {
     // #endregion
     // #region ===== EMAIL KONFIGURÁCIÓK =====
     email: {
-        host: (process.env.EMAILHOST || 'smtp.example.com').toLowerCase(),
+        host: (process.env.EMAILHOST || 'smtp.gmail.com').toLowerCase(),
         // ↑ SMTP szerver címe (pl. smtp.gmail.com)
         port: parseInt(process.env.EMAILPORT || 587),
         // ↑ SMTP port: 587 = TLS, 465 = SSL

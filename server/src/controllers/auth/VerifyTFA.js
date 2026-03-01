@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 
 import configs from '../../configs/Configs.js';
 import pool from '../../database/DB.js';
-import { encryptData } from '../../utilities/Encrypt.js';
 
 // Controller: 2FA kód verifikálása és JWT token kiállítása sikeres azonosítás esetén
 export default async function VerifyTwoFactorController(req, res) {
@@ -16,14 +15,15 @@ export default async function VerifyTwoFactorController(req, res) {
 
     try {
         // #region 2FA secret lekérése az adatbázisból titkosított usertoken alapján
-        const encryptedUsertoken = encryptData(usertoken);
+        // `usertoken` here is expected to already be the encrypted usertoken (from the temp token)
+        const encryptedUsertoken = usertoken;
         const [tfaRows] = await conn.query(
             'SELECT tfa.secret, users.usertag FROM tfa LEFT JOIN users ON tfa.usertoken = users.usertoken WHERE tfa.usertoken = ? AND tfa.enabled = TRUE',
             [encryptedUsertoken]
         );
 
         if (tfaRows.length === 0) {
-            pool.releaseConnection(conn);
+            conn.release();
             throw new Error([
                 lang === 'HU' ? 'Kétlépcsős azonosítás nincs engedélyezve.' : 'Two-factor authentication is not enabled.',
                 404
@@ -41,7 +41,7 @@ export default async function VerifyTwoFactorController(req, res) {
         });
 
         if (!isValid) {
-            pool.releaseConnection(conn);
+            conn.release();
             throw new Error([
                 lang === 'HU' ? 'Érvénytelen kétlépcsős azonosítási kód.' : 'Invalid two-factor authentication code.',
                 401
@@ -72,7 +72,7 @@ export default async function VerifyTwoFactorController(req, res) {
 
         // #region Utolsó bejelentkezés időpontjának frissítése
         await conn.query('UPDATE users SET lastlogin = NOW() WHERE usertoken = ?', [encryptedUsertoken]);
-        pool.releaseConnection(conn);
+        conn.release();
         // #endregion
 
         // #region HTTPOnly auth süti, nyelvnyelvek, sötét mód, valuta sütik beállítása
@@ -89,7 +89,7 @@ export default async function VerifyTwoFactorController(req, res) {
         });
         // #endregion
     } catch (error) {
-        pool.releaseConnection(conn);
+        conn.release();
         throw error;
     }
 }

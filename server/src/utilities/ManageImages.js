@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import crypto from 'crypto';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import Configs from '../configs/Configs.js';
@@ -18,8 +19,9 @@ const carsStorage = multer.diskStorage({
     }
     ,
     filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
+        const safeName = path.basename(file.originalname);
+        const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(6).toString('hex');
+        const ext = path.extname(safeName);
         cb(null, file.fieldname + '-' + uniqueSuffix + ext);
     }
 });
@@ -52,8 +54,9 @@ const pfpStorage = multer.diskStorage({
         cb(null, PfpImageDir);
     },
     filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
+        const safeName = path.basename(file.originalname);
+        const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(6).toString('hex');
+        const ext = path.extname(safeName);
         cb(null, file.fieldname + '-' + uniqueSuffix + ext);
     }
 });

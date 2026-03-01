@@ -77,7 +77,7 @@ export default async function RegisterController(req, res) {
         }
 
         // #region Regisztráció utáni email verifikációs kód küldése
-        const verificationCode = Math.floor(100000 + Math.random() * 900000); // 6 jegyű kód
+        const verificationCode = crypto.randomInt(100000, 1000000); // 6 jegyű kód (cryptographically secure)
         const verificationExpiry = new Date(Date.now() + Configs.emailVerification.expiryMinutes * 60000);
         await conn.query(
             'INSERT INTO emailcodes (usertoken, code, type, expiresat, newemail, newemail_hash) VALUES (?, ?, ?, ?, NULL, NULL)',
@@ -105,6 +105,6 @@ export default async function RegisterController(req, res) {
         throw error;
     }
     finally {
-        pool.releaseConnection(conn);
+        conn.release();
     }
 }

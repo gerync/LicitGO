@@ -1,5 +1,6 @@
 import { authenticator } from 'otplib';
 import argon from 'argon2';
+import crypto from 'crypto';
 
 import pool from '../../../database/DB.js';
 import { encryptData, decryptData } from '../../../utilities/Encrypt.js';
@@ -24,7 +25,7 @@ export async function DisableTwoFactorController(req, res) {
         );
 
         if (tfaRows.length === 0 || !tfaRows[0].enabled) {
-            pool.releaseConnection(conn);
+            conn.release();
             throw new Error([
                 lang === 'HU' ? 'A kétlépcsős azonosítás nincs engedélyezve.' : 'Two-factor authentication is not enabled.',
                 400
@@ -41,7 +42,7 @@ export async function DisableTwoFactorController(req, res) {
             );
 
             if (userRows.length === 0) {
-                pool.releaseConnection(conn);
+                conn.release();
                 throw new Error([
                     lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.',
                     404
@@ -52,7 +53,7 @@ export async function DisableTwoFactorController(req, res) {
             const usertag = userRows[0].usertag;
 
             // 6 számjegyű kód generálása
-            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            const code = crypto.randomInt(100000, 1000000).toString();
 
             // Kód mentése az adatbázisba 15 perces lejárattal
             await conn.query(
@@ -69,7 +70,7 @@ export async function DisableTwoFactorController(req, res) {
                 lang
             );
 
-            pool.releaseConnection(conn);
+            conn.release();
 
             return res.status(200).json({
                 message: lang === 'HU' ? 'Email kód elküldve. Ellenőrizze postafiókját.' : 'Email code sent. Check your inbox.'
@@ -87,7 +88,7 @@ export async function DisableTwoFactorController(req, res) {
             });
 
             if (!isValid) {
-                pool.releaseConnection(conn);
+                conn.release();
                 throw new Error([
                     lang === 'HU' ? 'Érvénytelen 2FA kód.' : 'Invalid 2FA code.',
                     401
@@ -100,7 +101,7 @@ export async function DisableTwoFactorController(req, res) {
                 [encryptedUsertoken]
             );
 
-            pool.releaseConnection(conn);
+            conn.release();
 
             return res.status(200).json({
                 message: lang === 'HU' ? 'Kétlépcsős azonosítás sikeresen letiltva.' : 'Two-factor authentication successfully disabled.'
@@ -123,7 +124,7 @@ export async function DisableTwoFactorController(req, res) {
             }
 
             if (!isValidBackupCode) {
-                pool.releaseConnection(conn);
+                conn.release();
                 throw new Error([
                     lang === 'HU' ? 'Érvénytelen backup kód.' : 'Invalid backup code.',
                     401
@@ -136,7 +137,7 @@ export async function DisableTwoFactorController(req, res) {
                 [encryptedUsertoken]
             );
 
-            pool.releaseConnection(conn);
+            conn.release();
 
             return res.status(200).json({
                 message: lang === 'HU' ? 'Kétlépcsős azonosítás sikeresen letiltva.' : 'Two-factor authentication successfully disabled.'
@@ -153,7 +154,7 @@ export async function DisableTwoFactorController(req, res) {
             );
 
             if (codeRows.length === 0) {
-                pool.releaseConnection(conn);
+                conn.release();
                 throw new Error([
                     lang === 'HU' ? 'Nincs aktív email kód. Kérjen újat.' : 'No active email code. Request a new one.',
                     404
@@ -166,7 +167,7 @@ export async function DisableTwoFactorController(req, res) {
 
             // Lejárat ellenőrzése
             if (new Date() > expiresAt) {
-                pool.releaseConnection(conn);
+                conn.release();
                 throw new Error([
                     lang === 'HU' ? 'Az email kód lejárt. Kérjen újat.' : 'Email code expired. Request a new one.',
                     401
@@ -175,7 +176,7 @@ export async function DisableTwoFactorController(req, res) {
 
             // Kód ellenőrzése
             if (emailCode !== storedCode) {
-                pool.releaseConnection(conn);
+                conn.release();
                 throw new Error([
                     lang === 'HU' ? 'Érvénytelen email kód.' : 'Invalid email code.',
                     401
@@ -191,7 +192,7 @@ export async function DisableTwoFactorController(req, res) {
                 [encryptedUsertoken]
             );
 
-            pool.releaseConnection(conn);
+            conn.release();
 
             return res.status(200).json({
                 message: lang === 'HU' ? 'Kétlépcsős azonosítás sikeresen letiltva.' : 'Two-factor authentication successfully disabled.'
@@ -199,13 +200,13 @@ export async function DisableTwoFactorController(req, res) {
         }
         // #endregion
 
-        pool.releaseConnection(conn);
+        conn.release();
         throw new Error([
             lang === 'HU' ? 'Érvénytelen letiltási módszer.' : 'Invalid disable method.',
             400
         ]);
     } catch (error) {
-        pool.releaseConnection(conn);
+        conn.release();
         throw error;
     }
 }
