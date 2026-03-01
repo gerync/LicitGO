@@ -25,11 +25,15 @@ RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=cache,target=/root/.npm \
     npm ci --omit=dev
 
-# Run the application as a non-root user.
-USER node
-
 # Copy the rest of the source files into the image.
 COPY . .
+
+# Create media directories and ensure correct ownership so the non-root user can write to them
+RUN mkdir -p /usr/src/app/media/cars /usr/src/app/media/users \
+    && chown -R node:node /usr/src/app/media
+
+# Run the application as a non-root user.
+USER node
 
 # Expose the port that the application listens on.
 EXPOSE 5090

@@ -13,7 +13,7 @@ export default async function AddCarController(req, res) {
 
     // #region Ellenőrzés: ownertoken megléte
     if (!ownertoken) {
-        pool.releaseConnection(conn);
+        conn.release();
         throw new Error([ lang === 'HU' ? 'Nincs bejelentkezve.' : 'Not logged in.', 401 ]);
     }
 
@@ -69,7 +69,7 @@ export default async function AddCarController(req, res) {
         // #endregion
 
         // #region Válasz visszaadása
-        pool.releaseConnection(conn);
+        conn.release();
         return res.status(201).json({
             message: lang === 'HU' ? 'Autó és képek sikeresen hozzáadva.' : 'Car and images added successfully.',
             carId: carId,
@@ -78,7 +78,7 @@ export default async function AddCarController(req, res) {
         // #endregion
 
     } catch (error) {
-        pool.releaseConnection(conn);
+        conn.release();
         // #region Ütközés kezelése VIN kód alapján
         if (error.message.includes('Duplicate entry') || error.code === 'ER_DUP_ENTRY') {
             throw new Error([ lang === 'HU' ? 'Már létezik ilyen VIN kóddal autó.' : 'A car with this VIN already exists.', 409 ]);

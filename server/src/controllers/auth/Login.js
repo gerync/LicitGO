@@ -2,7 +2,6 @@ import argon from 'argon2';
 import jwt from 'jsonwebtoken';
 
 import configs from '../../configs/Configs.js';
-import { decryptData } from '../../utilities/Encrypt.js';
 import hashdata from '../../utilities/Hash.js';
 import pool from '../../database/DB.js';
 
@@ -27,7 +26,7 @@ export default async function LoginController(req, res) {
     
     // Hibás azonosító esetén hiba visszaadása
     if (rows.length === 0) {
-        pool.releaseConnection(conn);
+        conn.release();
         throw new Error([ lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.', 404 ]);
     }
     const matchedUser = rows[0];
@@ -37,7 +36,7 @@ export default async function LoginController(req, res) {
     const passwordhash = matchedUser.passwordhash;
     const validPassword = await argon.verify(passwordhash, password);
     if (!validPassword) {
-        pool.releaseConnection(conn);
+        conn.release();
         throw new Error([ lang === 'HU' ? 'Hibás felhasználónév vagy jelszó.' : 'Invalid identifier or password.', 401 ]);
     }
     // #endregion
@@ -51,13 +50,13 @@ export default async function LoginController(req, res) {
     }
     // #endregion
     
-    const decryptedUsertoken = decryptData(matchedUser.usertoken);
     // #region Kétlépcsős azonosítás ellenőrzése - ha engedélyezve van, 2FA kód szükséges
     if (matchedUser.tfaenabled) {
-        const tempToken = jwt.sign({ usertoken: decryptedUsertoken, tfa_required: true }, configs.jwtSecret, {
+        // Use the encrypted usertoken from DB instead of decrypting sensitive internal token
+        const tempToken = jwt.sign({ usertoken: matchedUser.usertoken, tfa_required: true }, configs.jwtSecret, {
             expiresIn: '5m',
         });
-        pool.releaseConnection(conn);
+        conn.release();
         return res.status(203).json({
             message: lang === 'HU' ? 'Kétlépcsős azonosítás szükséges.' : 'Two-factor authentication required.',
             temp_token: tempToken,
@@ -66,10 +65,11 @@ export default async function LoginController(req, res) {
     // #endregion
     // #region JWT token létrehozása (keeplogin alapján 30 vagy 1 nap lejárattal)
     // Normal login flow - 2FA not enabled
-    const token = jwt.sign({ usertoken: decryptedUsertoken }, configs.jwtSecret, {
+    // Final JWT contains the encrypted usertoken (not the decrypted internal token)
+    const token = jwt.sign({ usertoken: matchedUser.usertoken }, configs.jwtSecret, {
         expiresIn: keeplogin ? '30d' : '1d',
     });
-    pool.releaseConnection(conn);
+    conn.release();
     // #endregion
 
     // #region HTTPOnly auth süti, nyelvnyelvek, sötét mód, valuta sütik beállítása keeplogin és bejelentkezett felhasználó alapján

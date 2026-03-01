@@ -31,11 +31,11 @@ export async function setUserSettings(req, res) {
 
             // Ellenőrizze, hogy az update sikeres volt-e
             if (!result || result.affectedRows === 0) {
-                pool.releaseConnection(conn);
+                conn.release();
                 throw new Error([ lang === 'HU' ? 'Az adatbázis frissítése sikertelen.' : 'Database update failed.', 500 ]);
             }
         }
-        pool.releaseConnection(conn);
+        conn.release();
     }
 
     // Süti beállítás (bejelentkezve és nem bejelentkezve felhasználók számára)

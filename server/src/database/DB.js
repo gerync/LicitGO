@@ -38,6 +38,9 @@ async function initializeDatabase() {
     }
 }
 
+// Ensure the database schema exists before creating the main pool
+await initializeDatabase();
+
 
 export const pool = mysql.createPool({
     host: configs.db.host,
@@ -48,7 +51,7 @@ export const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    multipleStatements: true,
+    multipleStatements: false,
 });
 
 export default pool;

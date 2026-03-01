@@ -6,7 +6,15 @@ import jwt from 'jsonwebtoken';
 export default function tempTokenMiddleware(req, res, next) {
     // #region Nyelvbeállítás és auth token lekérése
     const lang = req.lang;
-    const authToken = req.cookies.auth;
+    // Accept token from cookie or Authorization header (Bearer)
+    let authToken = null;
+    if (req.cookies && req.cookies.auth) authToken = req.cookies.auth;
+    const authHeader = req.headers && (req.headers.authorization || req.headers.Authorization);
+    if (!authToken && authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+        authToken = authHeader.slice(7).trim();
+    }
+    // Also allow explicit token in body (e.g., from client) as fallback
+    if (!authToken && req.body && req.body.token) authToken = req.body.token;
     if (!authToken) {
         throw new Error(lang === 'HU' ? 'Nincs hitelesítési token.' : 'No authentication token provided.', 401);
     }
