@@ -19,8 +19,8 @@ import placeBidMiddleware from '../middlewares/auction/placeBid.js';
 import ListAuctionsController from '../controllers/auction/list.js';
 import ListAuctionsMiddleware from '../middlewares/auction/list.js';
 
-import GetAuctionController from '../controllers/auction/getauction.js';
-import GetAuctionMiddleware from '../middlewares/auction/getauction.js';
+import GetAuctionController from '../controllers/auction/getAuction.js';
+import GetAuctionMiddleware from '../middlewares/auction/getAuction.js';
 
 import { getRateLimitHandler } from '../utilities/RateLimitMessages.js';
 

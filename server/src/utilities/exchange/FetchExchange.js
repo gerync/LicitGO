@@ -163,7 +163,7 @@ export default async function FetchExchanges() {
             coloredlog(`Exchange rate fetch error:\n
                 ${error.message}`, colors.error);
         }
-        coloredlog(error.stack, colors.error-stack);
+        coloredlog(error.stack, colors['error-stack'] || colors.error);
         return;
     }
 }

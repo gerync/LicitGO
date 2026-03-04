@@ -3,6 +3,7 @@ import Configs from '../../../configs/Configs.js';
 import pool from '../../../database/DB.js';
 import hashdata from '../../../utilities/Hash.js';
 import argon from 'argon2';
+import crypto from 'crypto';
 
 export async function PasswordResetRequestController(req, res) {
     const email = req.body.email;
@@ -24,7 +25,7 @@ export async function PasswordResetRequestController(req, res) {
         
         const matchedUser = results[0];
         
-        const code = Math.floor(100000 + Math.random() * 900000); // 6 jegyű kód
+        const code = crypto.randomInt(100000, 1000000); // 6 jegyű kód (cryptographically secure)
         const usertag = matchedUser.usertag;
         const expiryDate = new Date(Date.now() + Configs.passwordReset.expiryMinutes * 60000);
         await conn.query('INSERT INTO emailcodes (usertoken, code, type, expiresat, newemail, newemail_hash) VALUES (?, ?, ?, ?, NULL, NULL)', [matchedUser.usertoken, code, 'password-reset', expiryDate]);
