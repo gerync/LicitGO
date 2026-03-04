@@ -23,7 +23,7 @@ export default async function GetAuctionController(req, res) {
     const [rows] = await conn.query(query, [auctionId]);
     
     if (rows.length === 0) {
-        pool.releaseConnection(conn);
+        conn.release();
         throw new Error([ req.lang === 'HU' ? 'Aukció nem található.' : 'Auction not found.', 404 ]);
     }
     
@@ -124,7 +124,7 @@ export default async function GetAuctionController(req, res) {
             images: images.map(img => `${Configs.server.domain}/media/cars/${img}`)
         }
     };
-    pool.releaseConnection(conn);
+    conn.release();
     return res.status(200).json({
         success: true,
         auction: auctionDetails

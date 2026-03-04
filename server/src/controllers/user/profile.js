@@ -17,7 +17,7 @@ export async function getProfileController(req, res) {
     const selectParams = [user];
     const [rows] = await conn.query(selectQuery, selectParams);
     if (rows.length === 0) {
-        pool.releaseConnection(conn);
+        conn.release();
         throw new Error([ lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.', 404 ]);
     }
     const userData = rows[0];
@@ -58,7 +58,7 @@ export async function getProfileController(req, res) {
         resJson.pfp = pfp;
     }
     // #endregion
-    pool.releaseConnection(conn);
+    conn.release();
     return res.status(200).json(resJson);
 }
 

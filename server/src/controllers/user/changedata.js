@@ -110,7 +110,7 @@ export async function changeDataController(req, res) {
         throw error;
     }
     finally {
-        pool.releaseConnection(conn);
+        conn.release();
     }
 }
 
@@ -127,7 +127,7 @@ export async function getUserData(req, res) {
         WHERE u.usertoken = ?`;
     const params = [usertoken];
     const [rows] = await conn.query(query, params);
-    pool.releaseConnection(conn);
+    conn.release();
     // #endregion
 
     // #region Adatok maszkolása és válasz építése
