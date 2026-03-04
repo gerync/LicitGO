@@ -50,7 +50,7 @@ app.use(helmet({
 // #region Általános middleware-ek beállítása
 
 const corsOptions = {
-    origin: [Configs.server.domain()],
+    origin: ["http://localhost:5137", "http://localhost:3000"],
     credentials: true,
 };
 app.use(cors(corsOptions));
