@@ -122,9 +122,9 @@ export default {
     encryption: {
         algorithm: (process.env.ENCRYPTALG || 'aes-256-cbc').toLowerCase(),
         // ↑ Titkosítási algoritmus (AES-256 CBC mód)
-        secretKey: (process.env.ENCRYPTKEY || '0123456789abcdef0123456789abcdef'),
+        secretKey: process.env.ENCRYPTKEY || '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
         // ↑ 32 karakteres titkosítási kulcs
-        keyEncoding: (process.env.ENCRYPTENC || 'utf8').toLowerCase(),
+        keyEncoding: (process.env.ENCRYPTENC || 'hex').toLowerCase(),
         // ↑ Kulcs kódolása
         hash: {
             salt: (process.env.HASHSALT || 'HASHSALTASDASDA'),
