@@ -1,5 +1,6 @@
 import pool from '../../database/DB.js';
 import { decryptData } from '../../utilities/Encrypt.js';
+import Configs from '../../configs/Configs.js';
 
 export async function getProfileController(req, res) {
     // #region Kapcsolat létrehozása és nyelvi beállítás lekérése
@@ -8,25 +9,30 @@ export async function getProfileController(req, res) {
     // #endregion
     // #region Adott felhasználó keresese a usertoken alapján
     const user = req.params.usertag.toLowerCase();
-    const selectQuery = 'SELECT usertoken, usertag, fullname, email, mobile, gender, birthdate, publicContacts, type FROM users WHERE usertag = ?';
+    const selectQuery = `
+        SELECT u.usertoken, u.usertag, u.fullname, u.email, u.mobile, u.gender, u.birthdate, u.publicContacts, u.type, p.filename AS pfpFilename
+        FROM users u
+        LEFT JOIN profpics p ON p.usertoken = u.usertoken
+        WHERE u.usertag = ?`;
     const selectParams = [user];
     const [rows] = await conn.query(selectQuery, selectParams);
     if (rows.length === 0) {
-        pool.releaseConnection(conn);
+        conn.release();
         throw new Error([ lang === 'HU' ? 'Felhasználó nem található.' : 'User not found.', 404 ]);
     }
     const userData = rows[0];
     // #endregion
     // #region Felhasználó aukcióinak és licitjainak megszámlálása
-    const UsersAuctionsQuery = 'SELECT COUNT(*) AS auctionCount FROM auctions WHERE usertoken = ?';
+    const UsersAuctionsQuery = 'SELECT COUNT(*) AS auctionCount FROM auctions INNER JOIN cars ON auctions.carid = cars.id WHERE cars.ownertoken = ?';
     const UsersAuctionsParams = [userData.usertoken];
     const [auctionRows] = await conn.query(UsersAuctionsQuery, UsersAuctionsParams);
-    const UsersBidsQuery = 'SELECT COUNT(*) AS bidCount FROM bids WHERE usertoken = ?';
+    const UsersBidsQuery = 'SELECT COUNT(*) AS bidCount FROM bids WHERE bidder = ?';
     const UsersBidsParams = [userData.usertoken];
     const [bidRows] = await conn.query(UsersBidsQuery, UsersBidsParams);
     // #endregion
     // #region Érzékeny adatok dekódolása
     const publicContacts = Boolean(userData.publicContacts);
+    const pfp = userData.pfpFilename ? `${Configs.server.domain()}/media/users/${userData.pfpFilename}` : null;
     let resJson = {};
     if (!publicContacts) {
         resJson.fullname = decryptData(userData.fullname);
@@ -37,6 +43,7 @@ export async function getProfileController(req, res) {
         resJson.type = userData.type;
         resJson.email = lang === 'HU' ? 'A felhasználó elrejtette az email címét.' : 'The user has hidden their email address.';
         resJson.mobile = lang === 'HU' ? 'A felhasználó elrejtette a telefonszámát.' : 'The user has hidden their mobile number.';
+        resJson.pfp = pfp;
     }
     else {
         resJson.fullname = decryptData(userData.fullname);
@@ -48,8 +55,13 @@ export async function getProfileController(req, res) {
         resJson.type = userData.type;
         resJson.auctionCount = auctionRows[0].auctionCount;
         resJson.bidCount = bidRows[0].bidCount;
+        resJson.pfp = pfp;
     }
     // #endregion
-    pool.releaseConnection(conn);
+    conn.release();
     return res.status(200).json(resJson);
 }
+
+export default {
+    getProfileController,
+};

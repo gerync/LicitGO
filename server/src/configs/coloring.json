@@ -1,0 +1,14 @@
+{
+    "error": "#ff0000ff",
+    "error-stack": "#ffaeaeff",
+    "warning": "#ffa500ff",
+    "info": "#00afffff",
+    "success": "#00ff00ff",
+    "debug": "#808080ff",
+    "default": "#ffffffff",
+    "highlight": "#ffaeaeff",
+    "database": "#800080ff",
+    "email": "#008080ff",
+    "startup": "#0000ffff",
+    "shutdown": "#0000ffff"
+}

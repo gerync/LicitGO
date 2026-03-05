@@ -1,10 +1,10 @@
-import ObjectLength from "../../utilities/ObjectLength.js";
-import jwt from "jsonwebtoken";
-import configs from "../../configs/Configs.js";
+import ObjectLength from '../../utilities/ObjectLength.js';
+import jwt from 'jsonwebtoken';
+import configs from '../../configs/Configs.js';
 
 // Felhasználói beállítások validálása: mennyiség, típus, értékkészlet; JWT-ből usertoken kiemelése
 export default async function userSettings(req, res, next) {
-    // #region Nyelvi beállítás sütiből, kérés test paraméterek kiemelése (language, darkmode, currency), legalább egy mező kötelező
+    // #region Nyelvi beállítás sütiből, kérés testéből a beállítások kiemelése
     let lang = req.lang;
     let { language, darkmode, currency } = req.body;
     if (!language && !darkmode && !currency) {
@@ -12,7 +12,7 @@ export default async function userSettings(req, res, next) {
     }
     // #endregion
 
-    // #region Mezőszám ellenőrzés (1-3 között), nem string típusok stringgé konvertálása mentett előtt
+    // #region Mezőszám ellenőrzés (1-3 között)
     if (ObjectLength(req.body, 1, 3) !== 0) {
         throw new Error(lang === 'HU' ? 'Érvénytelen számú beállítás.' : 'Invalid number of settings.', 400);
     }
@@ -51,7 +51,10 @@ export default async function userSettings(req, res, next) {
         throw new Error(lang === 'HU' ? 'Érvénytelen nyelv.' : 'Invalid language.', 400);
     }
     lang = language ? (language.toUpperCase() === 'HU' ? 'HU' : 'EN') : lang;
-    if (darkmode && darkmode !== 'true' && darkmode !== 'false') {
+    if (darkmode && darkmode !== 'true' && darkmode !== 'false' && darkmode !== true && darkmode !== false) {
+        if (darkmode === 1 || darkmode === 0) {
+            req.body.darkmode = darkmode === 1 ? 'true' : 'false';
+        }
         throw new Error(lang === 'HU' ? 'Érvénytelen sötét mód érték.' : 'Invalid dark mode value.', 400);
     }
     if (currency && !['USD', 'EUR', 'HUF' ].includes(currency.toUpperCase())) {

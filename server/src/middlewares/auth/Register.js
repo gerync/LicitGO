@@ -74,13 +74,13 @@ export default function RegisterMiddleware(req, res, next) {
     }
     // #endregion
 
-    // #region Mezőszám ellenőrzés (pontosan 9 kötelező), ObjectLength használatával
-    if (ObjectLength(req.body, 9) !== 0) {
+    // #region Mezőszám ellenőrzés (8 kötelező), ObjectLength használatával
+    if (ObjectLength(req.body, 8) !== 0) {
         throw new Error([ lang === 'HU' ? 'Érvénytelen mezők száma.' : 'Invalid number of fields.', 400 ]);
     }
     // #endregion
 
-    // #region Regex pattern ellenőrzés: usertag/email/fullname/mobile formátum, jelszó komplexitas (hossz, kis/nagybetu, digit, speciális), nem hossz (max 10)
+    // #region Regex minta ellenőrzés: usertag/email/fullname/mobile formátum, jelszó komplexitas (hossz, kis/nagybetu, digit, speciális), nem hossza
     if (!regexes.usertag.test(usertag)) {
         throw new Error([ lang === 'HU' ? 'A felhasználónév érvénytelen formátumú.' : 'Invalid usertag format.', 400 ]);
     }

@@ -23,11 +23,14 @@ export default function isLoggedIn(req, res, next) {
             throw new Error([ lang === 'HU' ? 'Kétlépcsős azonosítás verifikációja szükséges.' : 'Two-factor authentication verification required.', 401 ]);
         }
 
-        req.usertoken = decoded.usertoken;
+        req.usertoken = decoded.usertoken; // Already decrypted in Login controller
         req.user = decoded;
         req.lang = lang;
     } catch (err) {
-        throw new Error([ lang === 'HU' ? 'Érvénytelen vagy lejárt token.' : 'Invalid or expired token.', 401 ]);
+        if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
+            throw new Error([ lang === 'HU' ? 'Érvénytelen vagy lejárt token.' : 'Invalid or expired token.', 401 ]);
+        }
+        throw err; // Egyéb hibák továbbdobása
     }
     // #endregion
 
