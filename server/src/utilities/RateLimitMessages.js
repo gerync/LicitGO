@@ -18,8 +18,8 @@ const messages = {
 // #region Rate limit handler lekérő függvény
 export function getRateLimitHandler(messageKey) {
     return (req, res) => {
-        const lang = (req.cookies?.language || 'EN').toUpperCase();
-        const message = messages[messageKey]?.[lang] || messages[messageKey]?.EN || 'Rate limit exceeded.';
+        const lang = (req.cookies?.language || 'EN').toUpperCase(); // üzenet nyelvének meghatározása
+        const message = messages[messageKey]?.[lang] || messages[messageKey]?.EN || 'Rate limit exceeded.'; // üzenet kiválasztása
         return res.status(429).json({ error: message });
     };
 }

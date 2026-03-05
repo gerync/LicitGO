@@ -146,13 +146,42 @@ export default function AddCarMiddleware(req, res, next) {
     if (factoryExtras && typeof factoryExtras !== 'string') {
         throw new Error([ lang === 'HU' ? 'Érvénytelen gyári extrák formátum.' : 'Invalid factory extras format.', 400 ]);
     }
-    if (ObjectLength(req.body, 12, 15) === 1) {
+    if (ObjectLength(req.body, 14, 21) === 1) {
         throw new Error([ lang === 'HU' ? 'Túl sok mező lett megadva.' : 'Too many fields provided.', 400 ]);
     }
-    if (ObjectLength(req.body, 12, 15) === -1) {
+    if (ObjectLength(req.body, 14, 21) === -1) {
         throw new Error([ lang === 'HU' ? 'Túl kevés mező lett megadva.' : 'Too few fields provided.', 400 ]);
     }
     //#endregion
+
+    //#region Képfájlok validálása
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+        throw new Error([
+            lang === 'HU' ? 'Legalább 5 kép szükséges.' : 'At least 5 images are required.',
+            400
+        ]);
+    }
+
+    // Minimum 5 images required
+    if (req.files.length < 5) {
+        throw new Error([
+            lang === 'HU' ? `Legalább 5 kép szükséges. ${req.files.length} kép lett feltöltve.` : `At least 5 images are required. ${req.files.length} images were uploaded.`,
+            400
+        ]);
+    }
+
+    // Maximum 50 images allowed
+    if (req.files.length > 50) {
+        throw new Error([
+            lang === 'HU' ? 'Legfeljebb 50 kép feltölthető.' : 'Maximum 50 images allowed.',
+            400
+        ]);
+    }
+
+    // Validate files are actually uploaded (multer should have already done this, but double-check)
+    req.validatedImages = req.files;
+    //#endregion
+
     //#region Normalizált értékek visszaírása a kérésebe
     req.body.manufacturer = manufacturer;
     req.body.model = model;
@@ -177,8 +206,5 @@ export default function AddCarMiddleware(req, res, next) {
     req.body.factoryExtras = factoryExtras;
     req.body.features = features;
     //#endregion
-
-    //#region Továbbküldés a következő middleware/handler felé
     next();
-    //#endregion
 }

@@ -4,15 +4,17 @@ import rateLimit from 'express-rate-limit';
 
 import RegisterController from '../controllers/auth/Register.js';
 import RegisterMiddleware from '../middlewares/auth/Register.js';
+import { uploadPfpImage } from '../utilities/ManageImages.js';
 
 import LoginController from '../controllers/auth/Login.js';
 import LoginMiddleware from '../middlewares/auth/Login.js';
 
 import Logout from '../controllers/auth/Logout.js';
 
-import verifyTFAController from '../controllers/user/tfa/verify.js';
-import verifyTFAMiddleware from '../middlewares/user/tfa/verify.js';
-import tempTokenMiddleware from '../middlewares/auth/tempToken.js';
+import VerifyTFAcontroller from '../controllers/auth/VerifyTFA.js';
+import VerifyTFAMiddleware from '../middlewares/auth/VerifyTFA.js';
+import VerifyEmailController from '../controllers/auth/VerifyEmail.js';
+import VerifyEmailMiddleware from '../middlewares/auth/VerifyEmail.js';
 
 import { getRateLimitHandler } from '../utilities/RateLimitMessages.js';
 // ##endregion
@@ -32,22 +34,24 @@ const RL = {
         max: 10, // IP-nként 10 kérés
         handler: getRateLimitHandler('login')
     }),
-    verifyTFA: rateLimit({
-        windowMs: 15 * 60 * 1000, // 15 perc
-        max: 10, // IP-nként 10 kérés
-        handler: getRateLimitHandler('verifyTFA')
+    verifyEmail: rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 10,
+        handler: getRateLimitHandler('verifyEmail')
     })
 };
 // #endregion
 
 // #region Regisztráció, bejelentkezés, kijelentkezés
-router.post('/register', RL.register, RegisterMiddleware, RegisterController);
+router.post('/register', RL.register, uploadPfpImage.single('pfp'), RegisterMiddleware, RegisterController);
 
 router.post('/login', RL.login, LoginMiddleware, LoginController);
 
-router.post('/logout', Logout);
+router.post('/verify-tfa', VerifyTFAMiddleware, VerifyTFAcontroller);
 
-router.post('/verify-2fa', [tempTokenMiddleware, RL.verifyTFA, verifyTFAMiddleware], verifyTFAController);
+router.post('/verify-email', RL.verifyEmail, VerifyEmailMiddleware, VerifyEmailController);
+
+router.post('/logout', Logout);
 // #endregion
 
 export default router;

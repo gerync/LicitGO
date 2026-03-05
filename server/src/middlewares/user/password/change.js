@@ -1,4 +1,4 @@
-import ObjectLenght from '../../../utilities/ObjectLenght.js';
+import ObjectLength from '../../../utilities/ObjectLength.js';
 import regexes from '../../../utilities/Regexes.js';
 
 export default function changePasswordMiddleware(req, res, next) {
@@ -13,10 +13,10 @@ export default function changePasswordMiddleware(req, res, next) {
     if (!newPasswordConfirm) {
         throw new Error(lang === 'HU' ? 'Hiányzó új jelszó megerősítése.' : 'Missing new password confirmation.', 400);
     }
-    if (ObjectLenght(req.body, 3) == -1) {
+    if (ObjectLength(req.body, 3) == -1) {
         throw new Error(lang === 'HU' ? 'Hiányzó adatok.' : 'Missing data.', 400);
     }
-    if (ObjectLenght(req.body, 3) == 1) {
+    if (ObjectLength(req.body, 3) == 1) {
         throw new Error(lang === 'HU' ? 'Túl sok adat lett megadva.' : 'Too many data provided.', 400);
     }
     if (newPassword !== newPasswordConfirm) {
