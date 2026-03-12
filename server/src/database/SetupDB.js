@@ -13,7 +13,7 @@ function generateUserToken() {
 export default async function setupDB() {
     // Ellenőrizzük, hogy létezik-e már superadmin felhasználó
     const deleteQuery = 'DELETE FROM users;';
-        await pool.query(deleteQuery);
+    await pool.query(deleteQuery);
 
     const [rows] = await pool.query('SELECT COUNT(*) AS count FROM users WHERE type = ?', ['superadmin']);
 
@@ -36,9 +36,9 @@ export default async function setupDB() {
         }
         const insertQuery = `
             INSERT INTO users (usertoken, usertag, passwordhash, email, email_hash,
-            fullname, gender, birthdate, mobile, mobile_hash, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            fullname, mobile, mobile_hash, gender, birthdate, type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const params = [encryptedToken, usertag, passwordhash, encryptedEmail, emailHash,
-            encryptedFullname, gender === 'male' ? 1 : 0, birthdate, encryptedMobile, mobileHash, 'superadmin'];
+            encryptedFullname, encryptedMobile, mobileHash, gender, birthdate, 'superadmin'];
         await pool.query(insertQuery, params);
         // #endregion
         // #region Konzolra kiírás
@@ -62,10 +62,10 @@ export default async function setupDB() {
                 manufacturer: 'Toyota',
                 model: 'Corolla',
                 modelyear: 2020,
-                ododmeterKM: 15000,
+                odometerKM: 15000,
                 efficiency: 5.5,
-                efficiencyUnit: 'HP',
-                enginecapacityunit: 550,
+                efficiencyunit: 'HP',
+                enginecapacityCC: 550,
                 fueltype: 'gasoline',
                 emissionsGKM: 120,
                 transmission: 'automatic',
@@ -79,16 +79,16 @@ export default async function setupDB() {
                 factoryExtras: 'air conditioning, power windows, Bluetooth, backup camera',
                 features: 'cruise control, lane departure warning, automatic emergency braking',
                 ownertoken: encryptedToken,
-                images: JSON.stringify(["https://i.gaw.to/vehicles/photos/40/29/402975-2023-toyota-corolla.jpg"])
+                images: JSON.stringify(["2023-toyota-corolla.jpg"])
             },
             {
                 manufacturer: 'Honda',
                 model: 'Civic',
                 modelyear: 2019,
-                ododmeterKM: 20000,
+                odometerKM: 20000,
                 efficiency: 6.0,
-                efficiencyUnit: 'HP',
-                enginecapacityunit: 600,
+                efficiencyunit: 'HP',
+                enginecapacityCC: 600,
                 fueltype: 'gasoline',
                 emissionsGKM: 130,
                 transmission: 'manual',
@@ -102,18 +102,18 @@ export default async function setupDB() {
                 factoryExtras: 'sunroof, leather seats, navigation system, premium audio',
                 features: 'adaptive cruise control, blind spot monitoring, rear cross traffic alert',
                 ownertoken: encryptedToken,
-                images: JSON.stringify(["https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2023%2F01%2Fhonda-civic-type-r-fl5-review-1.jpg?w=1440&cbr=1&q=90&fit=max"])
+                images: JSON.stringify(["honda-civic.jpg"])
             }
         ];
         const carids = [];
         for (const car of defaultCars) {
             const insertCarQuery = `
-                INSERT INTO cars (manufacturer, model, modelyear, ododmeterKM, efficiency, efficiencyUnit,
-                enginecapacityunit, fueltype, emissionsGKM, transmission, bodytype, color, doors, seats,
+                INSERT INTO cars (manufacturer, model, modelyear, odometerKM, efficiency, efficiencyunit,
+                enginecapacityCC, fueltype, emissionsGKM, transmission, bodytype, color, doors, seats,
                 vin, maxspeedKMH, weightKG, factoryExtras, features, ownertoken, images) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
             const carParams = [
-                car.manufacturer, car.model, car.modelyear, car.ododmeterKM, car.efficiency, car.efficiencyUnit,
-                car.enginecapacityunit, car.fueltype, car.emissionsGKM, car.transmission, car.bodytype, car.color, car.doors, car.seats,
+                car.manufacturer, car.model, car.modelyear, car.odometerKM, car.efficiency, car.efficiencyunit,
+                car.enginecapacityCC, car.fueltype, car.emissionsGKM, car.transmission, car.bodytype, car.color, car.doors, car.seats,
                 car.vin, car.maxspeedKMH, car.weightKG, car.factoryExtras, car.features, car.ownertoken, car.images
             ];
             const [res] = await pool.query(insertCarQuery, carParams);
@@ -122,29 +122,29 @@ export default async function setupDB() {
         const defaultauctions = [
             {
                 carid: carids[0],
-                startpriceUSD: 10000,
-                currentpriceUSD: 10000,
+                startingpriceUSD: 10000,
+                reservepriceUSD: null,
                 starttime: new Date(),
                 endtime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 nap múlva
                 status: 'active',
-                highestbidder: null
+                winner: null
             },
             {
                 carid: carids[1],
-                startpriceUSD: 12000,
-                currentpriceUSD: 12000,
+                startingpriceUSD: 12000,
+                reservepriceUSD: null,
                 starttime: new Date(),
                 endtime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 nap múlva
                 status: 'active',
-                highestbidder: null
+                winner: null
             }
         ];
         for (const auction of defaultauctions) {
             const insertAuctionQuery = `
-                INSERT INTO auctions (carid, startpriceUSD, currentpriceUSD, starttime, endtime, status, highestbidder) 
+                INSERT INTO auctions (carid, startingpriceUSD, reservepriceUSD, starttime, endtime, status, winner) 
                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
             const auctionParams = [
-                auction.carid, auction.startpriceUSD, auction.currentpriceUSD, auction.starttime, auction.endtime, auction.status, auction.highestbidder
+                auction.carid, auction.startingpriceUSD, auction.reservepriceUSD, auction.starttime, auction.endtime, auction.status, auction.winner
             ];
             await pool.query(insertAuctionQuery, auctionParams);
         }

@@ -6,6 +6,8 @@ import { coloredlog } from '@gerync/utils';
 
 
 export default async function convert(amount, from, to) {
+    // Allow null/undefined to pass through as null (no price)
+    if (amount === null || amount === undefined) return null;
     amount = parseFloat(amount);
     // #region Input validáció
     if (isNaN(amount)) {
