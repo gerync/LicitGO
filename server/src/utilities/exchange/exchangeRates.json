@@ -80,8 +80,6 @@
             "USDEUR": 0.8595495960116899
         },
         "success": true
-<<<<<<< Updated upstream
-=======
     },
     {
         "fetched_at": "2026-03-10 10:04:32",
@@ -95,6 +93,5 @@
             "USDEUR": 0.86333419666753
         },
         "success": true
->>>>>>> Stashed changes
     }
 ]
