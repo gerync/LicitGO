@@ -11,10 +11,10 @@ function generateUserToken() {
 }
 
 export default async function setupDB() {
-    // Ellenőrizzük, hogy létezik-e már superadmin felhasználó
+    /* Ellenőrizzük, hogy létezik-e már superadmin felhasználó
     const deleteQuery = 'DELETE FROM users;';
     await pool.query(deleteQuery);
-
+    */
     const [rows] = await pool.query('SELECT COUNT(*) AS count FROM users WHERE type = ?', ['superadmin']);
 
     if (rows[0].count === 0) {
