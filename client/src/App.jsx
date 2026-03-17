@@ -14,7 +14,7 @@ import AddCar from "./pages/AddCar"
 import AddAuction from "./pages/AddAuction"
 import AuctionDetail from "./pages/AuctionDetail"
 
-import "./styles/Auth.css"
+
 
 export default function App() {
   return (

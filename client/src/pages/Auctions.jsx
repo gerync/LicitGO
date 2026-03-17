@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import AuctionCard from "../components/AuctionCard"
-import "../styles/Auth.css"
 
 export default function Auctions() {
   const [auctions, setAuctions] = useState([])
