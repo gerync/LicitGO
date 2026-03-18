@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import "../styles/Auth.css"
 
 export default function AddAuction() {
   const navigate = useNavigate()
