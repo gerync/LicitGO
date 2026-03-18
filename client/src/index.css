@@ -1,1 +1,34 @@
 @import "tailwindcss";
+
+@theme {
+  --color-background: oklch(96.2% 0.018 272.314);
+  --color-surface: #ffffff;
+  --color-primary: oklch(67.3% 0.182 276.935);
+  --color-primary-hover: oklch(58.5% 0.233 277.117);
+  --color-content: #111827;
+  --color-content-muted: #6b7280;
+  --color-border: #e5e7eb;
+}
+
+@layer base {
+  .dark {
+    --color-background: oklch(21.2% 0.019 322.12);
+    --color-surface: oklch(25.7% 0.09 281.288);
+    
+    --color-primary: oklch(67.3% 0.182 276.935);
+    --color-primary-hover: oklch(58.5% 0.233 277.117);
+    
+    --color-content: #f9fafb;
+    --color-content-muted: #9ca3af;
+    --color-border: oklch(28.2% 0.091 267.935);
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--color-surface) inset !important;
+    -webkit-text-fill-color: var(--color-content) !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
