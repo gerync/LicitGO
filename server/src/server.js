@@ -37,7 +37,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // #region Biztonsági middleware-ek beállítása
-app.use(helmet({
+/*app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
     contentSecurityPolicy: {
         directives: {
@@ -46,6 +46,8 @@ app.use(helmet({
         },
     },
 }));
+
+*/
 // #endregion
 // #region Általános middleware-ek beállítása
 
@@ -53,7 +55,7 @@ const corsOptions = {
     origin: ["http://localhost:5137", "http://localhost:3000"],
     credentials: true,
 };
-app.use(cors(corsOptions));
+app.use(cors(/*corsOptions*/));
 app.use(cookieParser(Configs.cookieSecret));
 app.use(express.json());
 
