@@ -1,9 +1,13 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { AuthProvider } from "./context/AuthContext"
 import { Toaster } from "react-hot-toast"
+
+// Komponensek importálása
 import Navbar from "./components/Navbar"
+import Footer from "./components/Footer"
 import ProtectedRoute from "./components/ProtectedRoute"
 
+// Oldalak importálása
 import Landing from "./pages/Landing"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
@@ -19,7 +23,7 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        {/*Toast értesítések*/}
+        {/* Globális Toast értesítések (felugró üzenetek) */}
         <Toaster 
           position="top-right"
           toastOptions={{
@@ -28,19 +32,18 @@ export default function App() {
               background: '#333',
               color: '#fff',
             },
-            success: {
-              duration: 3000,
-              theme: {
-                primary: '#4ade80',
-              },
-            },
           }}
         />
 
-        {/*Tailwind kontténere*/}
+        {/* min-h-screen: legalább a képernyő magasságát kitölti
+            flex-col: oszlopba rendezi a Navbart, a Tartalmat és a Footert
+        */}
         <div className="min-h-screen bg-gray-50 flex flex-col text-gray-900">
+          
+          {/* A fejléc minden oldalon látszik */}
           <Navbar />
           
+          {/* A tartalom kitölti a maradék helyet (flex-grow), így a Footer mindig alul marad */}
           <main className="flex-grow">
             <Routes>
               <Route path="/" element={<Landing />} />
@@ -52,11 +55,16 @@ export default function App() {
               <Route path="/check-email" element={<CheckEmail />} />
               <Route path="/verify-2fa" element={<Verify2FA />} />
             
+              {/* Védett útvonalak */}
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
               <Route path="/add-car" element={<ProtectedRoute><AddCar /></ProtectedRoute>}/>
               <Route path="/add-auction" element={<ProtectedRoute><AddAuction /></ProtectedRoute>}/>
             </Routes>
           </main>
+          
+          {/* A lábléc minden oldalon látszik az oldal alján */}
+          <Footer />
+          
         </div>
       </BrowserRouter>
     </AuthProvider>
