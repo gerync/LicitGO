@@ -1,161 +1,176 @@
-import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
-
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Mail, Lock, User, UserPlus, Loader2, Gavel, Check, X } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Register() {
-  const navigate = useNavigate()
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [usertag, setUsertag] = useState("")
-  const [password, setPassword] = useState("")
-  const [passwordconfirm, setPasswordconfirm] = useState("")
-  const [email, setEmail] = useState("")
-  const [fullname, setFullname] = useState("")
-  const [mobile, setMobile] = useState("")
-  const [gender, setGender] = useState("")
-  const [birthdate, setBirthdate] = useState("")
-  const [pfp, setPfp] = useState(null)
+  const { register } = useAuth();
+  const navigate = useNavigate();
 
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  // Valós idejű validációs szabályok a UI-hoz
+  const isPasswordLongEnough = password.length >= 8;
+  const doPasswordsMatch = password !== '' && password === confirmPassword;
 
-  const handleRegister = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    if (password !== passwordconfirm) {
-      setError("A két jelszó nem egyezik!")
-      setLoading(false)
-      return
+    if (!username || !email || !password || !confirmPassword) {
+      toast.error("Kérjük, tölts ki minden mezőt!");
+      return;
     }
 
+    if (!isPasswordLongEnough) {
+      toast.error("A jelszónak legalább 8 karakternek kell lennie!");
+      return;
+    }
+
+    if (!doPasswordsMatch) {
+      toast.error("A megadott jelszavak nem egyeznek!");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const formData = new FormData()
-      formData.append("usertag", usertag)
-      formData.append("password", password)
-      formData.append("passwordconfirm", passwordconfirm)
-      formData.append("email", email)
-      formData.append("fullname", fullname)
-
-    
-      
-      formData.append("mobile", mobile || "")
-      formData.append("gender", gender || "")
-      formData.append("birthdate", birthdate || "")
-
-      if (pfp) formData.append("pfp", pfp)
-
-      const res = await fetch("http://localhost:3000/auth/register", {
-        method: "POST",
-        credentials: "include",
-        body: formData
-      })
-
-      const data = await res.json().catch(() => ({}))
-
-      if (res.ok) {
-        navigate("/check-email")
-      } else {
-        setError(data.error || data.message || "Regisztráció sikertelen!")
-      }
-    } catch {
-      setError("Szerver hiba")
+      await register(username, email, password);
+      navigate('/login'); 
+      toast.success("Sikeres regisztráció! Kérjük, jelentkezz be.");
+    } catch (error) {
+      console.error("Hiba a regisztrációkor:", error);
     } finally {
-      setLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Regisztráció</h2>
+    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Itt már a te saját 'surface' színedet használjuk a kártyához! */}
+      <div className="max-w-md w-full bg-surface rounded-2xl shadow-xl p-8 border border-border">
+        
+        {/* Fejléc */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="bg-background p-3 rounded-full border border-border">
+              <Gavel className="w-8 h-8 text-primary" />
+            </div>
+          </div>
+          <h2 className="text-3xl font-extrabold text-content tracking-tight">
+            Hozd létre a fiókod
+          </h2>
+          <p className="mt-2 text-sm text-content-muted">
+            Csatlakozz a LicitGO közösségéhez és licitálj!
+          </p>
+        </div>
 
-        {error && <div className="error">{error}</div>}
+        {/* Űrlap */}
+        <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+          
+          {/* Felhasználónév */}
+          <div>
+            <label className="block text-sm font-medium text-content mb-1" htmlFor="username">
+              Felhasználónév
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <User className="h-5 w-5 text-content-muted opacity-70" />
+              </div>
+              <input
+                id="username"
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="pl-10 block w-full bg-transparent border border-border rounded-lg py-2.5 text-content focus:ring-primary focus:border-primary sm:text-sm transition-colors"
+                placeholder="LicitKirály99"
+              />
+            </div>
+          </div>
 
-        <form onSubmit={handleRegister}>
-          <input
-            type="text"
-            placeholder="Usertag (kisbetű, szám, _ )"
-            value={usertag}
-            onChange={(e) => setUsertag(e.target.value)}
-            required
-            minLength={3}
-            maxLength={32}
-          />
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-content mb-1" htmlFor="email">
+              Email cím
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="h-5 w-5 text-content-muted opacity-70" />
+              </div>
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-10 block w-full bg-transparent border border-border rounded-lg py-2.5 text-content focus:ring-primary focus:border-primary sm:text-sm transition-colors"
+                placeholder="pelda@email.com"
+              />
+            </div>
+          </div>
 
-          <input
-            type="text"
-            placeholder="Teljes név"
-            value={fullname}
-            onChange={(e) => setFullname(e.target.value)}
-            required
-          />
+          {/* Jelszó */}
+          <div>
+            <label className="block text-sm font-medium text-content mb-1" htmlFor="password">
+              Jelszó
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-content-muted opacity-70" />
+              </div>
+              <input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pl-10 block w-full bg-transparent border border-border rounded-lg py-2.5 text-content focus:ring-primary focus:border-primary sm:text-sm transition-colors"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
 
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          {/* Jelszó újra */}
+          <div>
+            <label className="block text-sm font-medium text-content mb-1" htmlFor="confirmPassword">
+              Jelszó újra
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-content-muted opacity-70" />
+              </div>
+              <input
+                id="confirmPassword"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="pl-10 block w-full bg-transparent border border-border rounded-lg py-2.5 text-content focus:ring-primary focus:border-primary sm:text-sm transition-colors"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
 
-          <input
-            type="text"
-            placeholder="Mobil (+3612345678)"
-            value={mobile}
-            onChange={(e) => setMobile(e.target.value)}
-          />
+          {/* --- VIZUÁLIS VALIDÁCIÓ --- */}
+          <div className="bg-background rounded-lg p-3 space-y-2 border border-border">
 
-          <input
-            type="text"
-            placeholder="Nem "
-            value={gender}
-            onChange={(e) => setGender(e.target.value)}
-            maxLength={10}
-          />
+          </div>
 
-          <input
-            type="date"
-            value={birthdate}
-            onChange={(e) => setBirthdate(e.target.value)}
-          />
+          {/* Beküldés Gomb */}
 
-          <input
-            type="file"
-            accept="image/*"
-            placeholder="profilkép feltöltése"
-            onChange={(e) => setPfp(e.target.files?.[0] || null)}
-          />
-
-          <input
-            type="password"
-            placeholder="Jelszó (8-32, kis/nagy, szám, speciális)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-            maxLength={32}
-          />
-
-          <input
-            type="password"
-            placeholder="Jelszó megerősítése"
-            value={passwordconfirm}
-            onChange={(e) => setPasswordconfirm(e.target.value)}
-            required
-            minLength={8}
-            maxLength={32}
-          />
-
-          <button type="submit" disabled={loading}>
-            {loading ? "Regisztráció..." : "Regisztráció"}
-          </button>
         </form>
 
-        <p>
-          Van fiókod? <Link to="/login">Login</Link>
-        </p>
+        <div className="mt-8 text-center text-sm">
+          <span className="text-content-muted">Már van fiókod? </span>
+          <Link to="/login" className="font-medium text-primary hover:text-primary-hover hover:underline transition-all">
+            Lépj be itt
+          </Link>
+        </div>
       </div>
     </div>
-  )
+  );
 }
