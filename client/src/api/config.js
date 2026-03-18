@@ -5,16 +5,25 @@ export const api = {
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include' 
         });
-        return response.json();
+        return response; 
     },
-
     async post(endpoint, body) {
+        const isFormData = body instanceof FormData;
+        
+        const headers = {};
+        if (!isFormData) {
+            headers['Content-Type'] = 'application/json';
+        }
+
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
+            headers: headers,
+            credentials: 'include', 
+            body: isFormData ? body : JSON.stringify(body),
         });
-        return response.json();
+        
+        return response; 
     }
 };
