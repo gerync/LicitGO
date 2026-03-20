@@ -51,8 +51,10 @@ export default function App() {
           
             {/* Védett útvonalak */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
-            <Route path="/add-car" element={<ProtectedRoute><AddCar /></ProtectedRoute>}/>
-            <Route path="/add-auction" element={<ProtectedRoute><AddAuction /></ProtectedRoute>}/>
+
+            {/* Fos backend */}
+            <Route path="/addcar" element={<AddCar />}/>
+            <Route path="/AddAuction" element={<AddAuction />}/>
           </Routes>
         </main>
         

@@ -20,6 +20,20 @@ export default function Navbar() {
             </span>
           </Link>
 
+          <Link 
+            to="/AddCar" 
+            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg animate-pulse border-2 border-red-400"
+          >
+            !Autó hozzáadása!
+          </Link>
+
+          <Link 
+            to="/AddAuction" 
+            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg animate-pulse border-2 border-red-400"
+          >
+            !Aukció indítása!
+          </Link>
+
           {/* Asztali menü */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/auctions" className="text-content-muted hover:text-primary font-medium transition">
