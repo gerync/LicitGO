@@ -45,12 +45,14 @@ export default async function FetchExchanges() {
     
     try {
         // #region Aktuális árfolyamok lekérése
-        let USDresponse = await fetch(Configs.exchange.apiFullUrl()+'USD');
+        const usdUrl = Configs.exchange.apiFullUrl() + 'USD';
+        let USDresponse = await fetch(usdUrl);
         if (!USDresponse.ok) {
+            const bodyText = await USDresponse.text().catch(() => '');
             if (Configs.server.defaultLanguage === 'HU') {
-                throw new Error(`Hiba az árfolyamok lekérésekor: ${USDresponse.status} ${USDresponse.statusText}`);
+                throw new Error(`Hiba az árfolyamok lekérésekor: ${USDresponse.status} ${USDresponse.statusText} - ${bodyText} (url: ${usdUrl})`);
             } else {
-                throw new Error(`Error fetching exchange rates: ${USDresponse.status} ${USDresponse.statusText}`);
+                throw new Error(`Error fetching exchange rates: ${USDresponse.status} ${USDresponse.statusText} - ${bodyText} (url: ${usdUrl})`);
             }
         }
         USDresponse = await USDresponse.json();
@@ -69,12 +71,14 @@ export default async function FetchExchanges() {
         }
 
         setTimeout(() => {}, 2000); // API limit elkerülése miatt várakozás
-        let EURresponse = await fetch(Configs.exchange.apiFullUrl()+'EUR');
+        const eurUrl = Configs.exchange.apiFullUrl() + 'EUR';
+        let EURresponse = await fetch(eurUrl);
         if (!EURresponse.ok) {
+            const bodyText = await EURresponse.text().catch(() => '');
             if (Configs.server.defaultLanguage === 'HU') {
-                throw new Error(`Hiba az euró árfolyamok lekérésekor: ${EURresponse.status} ${EURresponse.statusText}`);
+                throw new Error(`Hiba az euró árfolyamok lekérésekor: ${EURresponse.status} ${EURresponse.statusText} - ${bodyText} (url: ${eurUrl})`);
             } else {
-                throw new Error(`Error fetching exchange rates of the euro: ${EURresponse.status} ${EURresponse.statusText}`);
+                throw new Error(`Error fetching exchange rates of the euro: ${EURresponse.status} ${EURresponse.statusText} - ${bodyText} (url: ${eurUrl})`);
             }
         }
         EURresponse = await EURresponse.json();
