@@ -1,168 +1,86 @@
-import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
+import { useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { 
+  Clock, Tag, Gauge, Calendar, Fuel, Settings, Zap, 
+  CarFront, Scale, ArrowLeft, CheckCircle2, AlertCircle
+} from 'lucide-react';
 
 export default function AuctionDetail() {
-  const { auctionId } = useParams()
-  const { user } = useAuth()
+  const { auctionId } = useParams(); 
 
-  const [auction, setAuction] = useState(null)
-  const [bidamount, setBidamount] = useState("")
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [bidLoading, setBidLoading] = useState(false)
+  const [auction, setAuction] = useState(mockAuction);
+  const [mainImage, setMainImage] = useState(mockAuction.images[0]);
+  const [bidAmount, setBidAmount] = useState('');
+  const [isBidding, setIsBidding] = useState(false);
 
-  const fetchAuction = async () => {
-    try {
-      setLoading(true)
-      setError("")
+  const handleBid = (e) => {
+    e.preventDefault();
+    const bidValue = Number(bidAmount);
 
-      const res = await fetch(`http://localhost:3000/auction/${auctionId}`, {
-        method: "GET",
-        credentials: "include"
-      })
-
-      const data = await res.json().catch(() => ({}))
-
-      if (res.ok) {
-        setAuction(data.auction)
-      } else {
-        setError(data.error || data.message || "Az aukció betöltése sikertelen!")
-      }
-    } catch {
-      setError("Szerver hiba")
-    } finally {
-      setLoading(false)
+    if (bidValue <= auction.currentPrice) {
+      toast.error(`A licitnek nagyobbnak kell lennie, mint a jelenlegi ár (${auction.currentPrice} $)!`);
+      return;
     }
-  }
 
-  useEffect(() => {
-    fetchAuction()
-  }, [auctionId])
+    setIsBidding(true);
+    setTimeout(() => {
+      setAuction(prev => ({
+        ...prev,
+        currentPrice: bidValue,
+        bidsCount: prev.bidsCount + 1
+      }));
+      setBidAmount('');
+      toast.success("Sikeres licit!");
+      setIsBidding(false);
+    }, 800);
+  };
 
-  const handleBid = async (e) => {
-    e.preventDefault()
-    setBidLoading(true)
-    setError("")
-    setSuccess("")
-
-    try {
-      const res = await fetch(`http://localhost:3000/auction/${auctionId}/bid`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          bidamount: Number(bidamount)
-        })
-      })
-
-      const data = await res.json().catch(() => ({}))
-
-      if (res.ok) {
-        setSuccess(data.message || "Sikeres licit!")
-        setBidamount("")
-        fetchAuction()
-      } else {
-        setError(data.error || data.message || "A licit sikertelen!")
-      }
-    } catch {
-      setError("Szerver hiba")
-    } finally {
-      setBidLoading(false)
-    }
-  }
-
-  if (loading) {
-    return <div className="page-section"><div className="auth-card">Betöltés...</div></div>
-  }
-
-  if (error && !auction) {
-    return <div className="page-section"><div className="error">{error}</div></div>
-  }
-
-  if (!auction) {
-    return <div className="page-section"><div className="auth-card">Az aukció nem található.</div></div>
-  }
-
-  const car = auction.car || {}
+  const fuelTypes = { gasoline: 'Benzin', diesel: 'Dízel', electric: 'Elektromos', hybrid: 'Hibrid' };
+  const transmissions = { manual: 'Manuális', automatic: 'Automata' };
 
   return (
-    <div className="page-section">
-      <div className="detail-layout">
-        <div className="detail-left">
-          {car.images && car.images.length > 0 ? (
-            <img
-              src={car.images[0]}
-              alt={`${car.manufacturer || ""} ${car.model || ""}`}
-              className="detail-main-image"
-            />
-          ) : (
-            <div className="detail-main-image placeholder-detail">Nincs kép</div>
-          )}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+      {/* Vissza gomb */}
+      <Link to="/auctions" className="inline-flex items-center text-content-muted hover:text-primary transition-colors font-medium mb-6">
+        <ArrowLeft className="w-4 h-4 mr-2" /> Vissza az aukciókhoz
+      </Link>
+
+      {/*  Fejléc */}
+      <div className="mb-8">
+        <h1 className="text-4xl font-extrabold text-content tracking-tight">
+          {auction.car.manufacturer} {auction.car.model}
+        </h1>
+        <p className="text-xl text-content-muted mt-2">
+          {auction.car.modelyear} • {auction.car.odometerKM.toLocaleString()} km • {fuelTypes[auction.car.fueltype]}
+        </p>
+      </div>
+
+      {/* KÉPGALÉRIA */}
+      <div className="mb-12">
+        {/* Nagy főkép */}
+        <div className="w-full h-[50vh] md:h-[65vh] rounded-2xl overflow-hidden bg-background mb-4 border border-border shadow-sm">
+          <img src={mainImage} alt="Main car view" className="w-full h-full object-cover" />
         </div>
-
-        <div className="detail-right">
-          <h1>{car.manufacturer} {car.model}</h1>
-
-          <div className="detail-box">
-            <p><strong>Évjárat:</strong> {car.modelyear}</p>
-            <p><strong>Kilométer:</strong> {car.odometerKM} km</p>
-            <p><strong>Szín:</strong> {car.color}</p>
-            <p><strong>Üzemanyag:</strong> {car.fueltype}</p>
-            <p><strong>Váltó:</strong> {car.transmission}</p>
-            <p><strong>Karosszéria:</strong> {car.bodytype}</p>
-            <p><strong>Ajtók:</strong> {car.doors}</p>
-            <p><strong>Ülések:</strong> {car.seats}</p>
-            <p><strong>Ár:</strong> {auction.currentPrice}</p>
-            <p><strong>Licit szám:</strong> {auction.bidCount}</p>
-            <p><strong>Státusz:</strong> {auction.status}</p>
-            <p><strong>Reserve met:</strong> {auction.reserveMet ? "Igen" : "Nem"}</p>
-          </div>
-
-          {error && <div className="error">{error}</div>}
-          {success && <div className="success">{success}</div>}
-
-          {user ? (
-            <form onSubmit={handleBid} className="bid-form">
-              <input
-                type="number"
-                placeholder="Licit összege"
-                value={bidamount}
-                onChange={(e) => setBidamount(e.target.value)}
-                required
-              />
-              <button type="submit" disabled={bidLoading}>
-                {bidLoading ? "Licitálás..." : "Licit leadása"}
-              </button>
-            </form>
-          ) : (
-            <div className="auth-card">
-              Jelentkezz be, ha licitálni szeretnél.
+        {/* Kis képek (Thumbnails) */}
+        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
+          {auction.images.map((img, idx) => (
+            <div 
+              key={idx} 
+              onClick={() => setMainImage(img)}
+              className={`aspect-[4/3] rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${mainImage === img ? 'border-primary shadow-md opacity-100' : 'border-transparent opacity-70 hover:opacity-100'}`}
+            >
+              <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
             </div>
-          )}
+          ))}
         </div>
       </div>
 
-      <div className="detail-history">
-        <h2>Licit történet</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 relative">
+        
 
-        {auction.bidHistory && auction.bidHistory.length > 0 ? (
-          <div className="history-list">
-            {auction.bidHistory.map((bid, index) => (
-              <div key={index} className="history-item">
-                <span><strong>{bid.bidder}</strong></span>
-                <span>{bid.amount}</span>
-                <span>{new Date(bid.bidtime).toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="auth-card">Még nincs licit.</div>
-        )}
       </div>
     </div>
-  )
+  );
 }
