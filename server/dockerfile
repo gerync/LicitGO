@@ -1,0 +1,24 @@
+ARG NODE_VERSION=24.10.0
+
+FROM node:${NODE_VERSION}-alpine AS builder
+
+ENV NODE_ENV=production
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm i --omit=dev
+
+COPY .env /usr/src/app/.env
+COPY . /usr/src/app
+
+# Ensure media directories exist and are writable by the non-root `node` user
+RUN mkdir -p /usr/src/app/media/cars \
+	&& chown -R node:node /usr/src/app/media
+
+USER node
+
+EXPOSE 15000
+
+ENV NODE_OPTIONS=--experimental-specifier-resolution=node
+CMD ["node", "./src/server.js"]
