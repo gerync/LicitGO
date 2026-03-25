@@ -50,11 +50,12 @@ export default function App() {
             <Route path="/verify-2fa" element={<Verify2FA />} />
           
             {/* Védett útvonalak */}
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}/>
 
             {/* Fos backend */}
             <Route path="/addcar" element={<AddCar />}/>
             <Route path="/AddAuction" element={<AddAuction />}/>
+            <Route path="/dashboard" element={<Dashboard />}/>
+
           </Routes>
         </main>
         

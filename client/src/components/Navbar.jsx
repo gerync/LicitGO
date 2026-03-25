@@ -34,6 +34,12 @@ export default function Navbar() {
             !Aukció indítása!
           </Link>
 
+          <Link 
+            to="/dashboard" 
+            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg animate-pulse border-2 border-red-400"
+          >
+            !Dashboard teszt!
+          </Link>
           {/* Asztali menü */}
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/auctions" className="text-content-muted hover:text-primary font-medium transition">
