@@ -137,9 +137,9 @@ export default function Dashboard() {
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-border flex justify-end">
-                  <button className="bg-background border border-border hover:border-primary text-content font-medium py-2 px-4 rounded-lg transition-colors flex items-center shadow-sm">
+                  <Link to="/settings" className="bg-background border border-border hover:border-primary text-content font-medium py-2 px-4 rounded-lg transition-colors flex items-center shadow-sm">
                     <Settings className="w-4 h-4 mr-2" /> Beállítások módosítása
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

@@ -17,6 +17,7 @@ import Auctions from "./pages/Auctions"
 import AddCar from "./pages/AddCar"
 import AddAuction from "./pages/AddAuction"
 import AuctionDetail from "./pages/AuctionDetail"
+import Settings from "./pages/Settings"
 
 export default function App() {
   return (
@@ -55,6 +56,7 @@ export default function App() {
             <Route path="/addcar" element={<AddCar />}/>
             <Route path="/AddAuction" element={<AddAuction />}/>
             <Route path="/dashboard" element={<Dashboard />}/>
+            <Route path="/settings" element={<Settings />}/>
 
           </Routes>
         </main>
