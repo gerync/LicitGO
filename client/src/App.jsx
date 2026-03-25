@@ -18,6 +18,8 @@ import AddCar from "./pages/AddCar"
 import AddAuction from "./pages/AddAuction"
 import AuctionDetail from "./pages/AuctionDetail"
 import Settings from "./pages/Settings"
+import ForgotPassword from "./pages/ForgotPassword"
+
 
 export default function App() {
   return (
@@ -58,6 +60,7 @@ export default function App() {
                 <Route path="/AddAuction" element={<AddAuction />}/>
                 <Route path="/dashboard" element={<Dashboard />}/>
                 <Route path="/settings" element={<Settings />}/>
+                <Route path="/forgot-password" element={<ForgotPassword />} />  
 
               </Routes>
             </main>

@@ -1,144 +1,122 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { User, Lock, LogIn, Loader2, Gavel } from 'lucide-react'; 
 import toast from 'react-hot-toast';
 
 export default function Login() {
-  const [identifier, setIdentifier] = useState('');
-  const [password, setPassword] = useState('');
-  const [keepLogin, setKeepLogin] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
   const [isLoading, setIsLoading] = useState(false);
+  
   const { login } = useAuth();
   const navigate = useNavigate();
 
-const handleSubmit = async (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!identifier || !password) {
-      toast.error("Kérjük, tölts ki minden mezőt!");
-      return;
+    if (!formData.email || !formData.password) {
+      return toast.error("Kérlek, tölts ki minden mezőt!");
     }
 
     setIsLoading(true);
+    
     try {
-      const result = await login(identifier, password, keepLogin);
-      
-      if (result && !result.requires2FA) {
-        navigate('/dashboard');
-      }
-      
+      await login(formData);
+      toast.success("Sikeres bejelentkezés!");
+      navigate('/dashboard');
     } catch (error) {
-      console.error("Hiba a bejelentkezéskor:", error);
+      toast.error("Hiba a bejelentkezés során. Próbáld újra!");
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-surface rounded-2xl shadow-xl p-8 border border-border">
+    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-surface p-8 sm:p-10 rounded-2xl shadow-lg border border-border">
         
-        {/* Fejléc */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-background p-3 rounded-full border border-border">
-              <Gavel className="w-8 h-8 text-primary" />
-            </div>
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <LogIn className="w-8 h-8 text-primary" />
           </div>
-          <h2 className="text-3xl font-extrabold text-content tracking-tight">
+          <h2 className="text-3xl font-extrabold text-content">
             Üdvözlünk újra!
           </h2>
-          <p className="mt-2 text-sm text-content-muted">
-            Jelentkezz be emaillel, felhasználónévvel vagy mobilszámmal.
+          <p className="mt-3 text-sm text-content-muted">
+            Jelentkezz be a fiókodba a folytatáshoz.
           </p>
         </div>
 
-        {/* Űrlap */}
-        <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-          
-          {/* Azonosító mező */}
-          <div>
-            <label className="block text-sm font-medium text-content mb-1" htmlFor="identifier">
-              Azonosító (Email / Név / Mobil)
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-content-muted opacity-70" />
-              </div>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            
+            {/* Email mező */}
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-content mb-1">
+                Email cím (vagy Felhasználónév)
+              </label>
               <input
-                id="identifier"
-                type="text" 
+                id="email"
+                name="email"
+                type="text"
                 required
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                className="pl-10 block w-full bg-transparent border border-border rounded-lg py-2.5 text-content focus:ring-primary focus:border-primary sm:text-sm transition-colors"
-                placeholder="email/felhasználónév/mobilszám"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full bg-background border border-border rounded-lg p-3 text-content focus:ring-primary focus:border-primary transition-colors"
+                placeholder="pelda@email.hu"
               />
             </div>
-          </div>
 
-          {/* Jelszó mező */}
-          <div>
-            <label className="block text-sm font-medium text-content mb-1" htmlFor="password">
-              Jelszó
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-content-muted opacity-70" />
+            {/* Jelszó mező és elfelejtett jelszó link */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-content">
+                  Jelszó
+                </label>
+                <Link to="/forgot-password" className="text-sm font-medium text-primary hover:text-primary-hover transition-colors">
+                  Elfelejtetted a jelszavad?
+                </Link>
               </div>
               <input
                 id="password"
+                name="password"
                 type="password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10 block w-full bg-transparent border border-border rounded-lg py-2.5 text-content focus:ring-primary focus:border-primary sm:text-sm transition-colors"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full bg-background border border-border rounded-lg p-3 text-content focus:ring-primary focus:border-primary transition-colors"
                 placeholder="••••••••"
               />
             </div>
+
           </div>
 
-          { /* Emlékezz rám Checkbox */ }
-          <div className="flex items-center">
-            <input
-              id="keepLogin"
-              type="checkbox"
-              checked={keepLogin}
-              onChange={(e) => setKeepLogin(e.target.checked)}
-              className="h-4 w-4 rounded border-border text-primary focus:ring-primary bg-background"
-            />
-            <label htmlFor="keepLogin" className="ml-2 block text-sm text-content-muted cursor-pointer hover:text-content transition-colors">
-              Emlékezz rám (30 napig)
-            </label>
-          </div>
-
-          {/* Beküldés Gomb */}
+          {/* Bejelentkezés gomb */}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+            className="w-full flex items-center justify-center bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary-hover transition-colors shadow-sm disabled:opacity-70"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" />
-                Bejelentkezés folyamatban...
-              </>
-            ) : (
-              <>
-                <LogIn className="-ml-1 mr-2 h-5 w-5 text-white" />
-                Bejelentkezés
-              </>
-            )}
+            {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
+            {isLoading ? 'Bejelentkezés...' : 'Bejelentkezés'}
           </button>
         </form>
 
-        <div className="mt-8 text-center text-sm">
-          <span className="text-content-muted">Még nincs fiókod? </span>
-          <Link to="/register" className="font-medium text-primary hover:text-primary-hover hover:underline transition-all">
-            Regisztrálj most
-          </Link>
+        <div className="pt-6 mt-6 border-t border-border text-center">
+          <p className="text-sm text-content-muted">
+            Még nincs fiókod?{' '}
+            <Link to="/register" className="font-medium text-primary hover:text-primary-hover transition-colors">
+              Regisztrálj itt!
+            </Link>
+          </p>
         </div>
+
       </div>
     </div>
   );
