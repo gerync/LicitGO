@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Gavel, User, LogOut, Menu, X } from 'lucide-react';
+import { Gavel, User, LogOut, Menu, X, Moon, Sun } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
+  const { isDarkMode, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -40,8 +42,21 @@ export default function Navbar() {
           >
             !Dashboard teszt!
           </Link>
+          
           {/* Asztali menü */}
           <div className="hidden md:flex items-center space-x-8">
+            
+            {/* Téma kapcsoló */}
+            <div className="flex items-center mr-2 border-r border-border pr-6">
+              <button 
+                onClick={toggleTheme} 
+                className="p-2 rounded-lg text-content-muted hover:bg-background hover:text-primary transition-colors"
+                title="Téma váltása"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </div>
+
             <Link to="/auctions" className="text-content-muted hover:text-primary font-medium transition">
               Aukciók
             </Link>
@@ -75,6 +90,7 @@ export default function Navbar() {
                   Regisztráció
                 </Link>
               </div>
+              
             )}
           </div>
 
@@ -90,6 +106,16 @@ export default function Navbar() {
       {/* Mobilos legördülő */}
       {isOpen && (
         <div className="md:hidden bg-surface border-t border-border px-4 pt-2 pb-4 shadow-lg">
+          
+          {/* Téma kapcsoló */}
+          <div className="flex items-center justify-center py-3 mb-2 border-b border-border">
+            <button 
+              onClick={toggleTheme} 
+              className="flex items-center p-2 rounded-lg text-content-muted hover:bg-background hover:text-primary transition-colors font-medium"
+            >
+              {isDarkMode ? <><Sun className="w-5 h-5 mr-2" /> Világos mód</> : <><Moon className="w-5 h-5 mr-2" /> Sötét mód</>}
+            </button>
+          </div>
           <Link to="/auctions" className="block px-3 py-2 text-content-muted hover:bg-background rounded-md font-medium">
             Aukciók
           </Link>

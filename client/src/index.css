@@ -1,34 +1,43 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background: oklch(96.2% 0.018 272.314);
-  --color-surface: #ffffff;
-  --color-primary: oklch(67.3% 0.182 276.935);
-  --color-primary-hover: oklch(58.5% 0.233 277.117);
-  --color-content: #111827;
-  --color-content-muted: #6b7280;
-  --color-border: #e5e7eb;
-}
+@custom-variant dark (&:is(.dark *));
 
 @layer base {
+  /*  VILÁGOS MÓD SZÍNEK */
+  :root {
+    --background: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --content: #0f172a;
+    --content-muted: #64748b;
+    --primary: #8b5cf6;
+    --primary-hover: #7c3aed;
+  }
+
+  /*  SÖTÉT MÓD SZÍNEK  */
   .dark {
-    --color-background: oklch(21.2% 0.019 322.12);
-    --color-surface: oklch(25.7% 0.09 281.288);
-    
-    --color-primary: oklch(67.3% 0.182 276.935);
-    --color-primary-hover: oklch(58.5% 0.233 277.117);
-    
-    --color-content: #f9fafb;
-    --color-content-muted: #9ca3af;
-    --color-border: oklch(28.2% 0.091 267.935);
+    --background: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --content: #f8fafc;
+    --content-muted: #94a3b8;
+    --primary: #8b5cf6;
+    --primary-hover: #a78bfa;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--content);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
-input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
-input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px var(--color-surface) inset !important;
-    -webkit-text-fill-color: var(--color-content) !important;
-    transition: background-color 5000s ease-in-out 0s;
+@theme {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-content: var(--content);
+  --color-content-muted: var(--content-muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
 }

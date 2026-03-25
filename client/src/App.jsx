@@ -1,12 +1,12 @@
 import { Routes, Route } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
 
-// Komponensek importálása
+import { ThemeProvider } from "./context/ThemeContext"
+
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
 import ProtectedRoute from "./components/ProtectedRoute"
 
-// Oldalak importálása
 import Landing from "./pages/Landing"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
@@ -21,50 +21,52 @@ import Settings from "./pages/Settings"
 
 export default function App() {
   return (
-    <>
-      {/* Globális Toast értesítések (felugró üzenetek) */}
-      <Toaster 
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#333',
-            color: '#fff',
-          },
-        }}
-      />
+    <ThemeProvider>
+        <>
+          {/* Globális Toast értesítések (felugró üzenetek) */}
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#333',
+                color: '#fff',
+              },
+            }}
+          />
 
-      <div className="min-h-screen bg-gray-50 flex flex-col text-gray-900">
-        
-        {/* fejléc */}
-        <Navbar />
-        
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/auctions" element={<Auctions />} />
-            <Route path="/auctions/:auctionId" element={<AuctionDetail />} />
+          <div className="min-h-screen bg-background flex flex-col text-content transition-colors duration-300">
+            
+            {/* fejléc */}
+            <Navbar />
+            
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/auctions" element={<Auctions />} />
+                <Route path="/auctions/:auctionId" element={<AuctionDetail />} />
 
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/check-email" element={<CheckEmail />} />
-            <Route path="/verify-2fa" element={<Verify2FA />} />
-          
-            {/* Védett útvonalak */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/check-email" element={<CheckEmail />} />
+                <Route path="/verify-2fa" element={<Verify2FA />} />
+              
+                {/* Védett útvonalak */}
 
-            {/* Fos backend */}
-            <Route path="/addcar" element={<AddCar />}/>
-            <Route path="/AddAuction" element={<AddAuction />}/>
-            <Route path="/dashboard" element={<Dashboard />}/>
-            <Route path="/settings" element={<Settings />}/>
+                {/* Fos backend */}
+                <Route path="/addcar" element={<AddCar />}/>
+                <Route path="/AddAuction" element={<AddAuction />}/>
+                <Route path="/dashboard" element={<Dashboard />}/>
+                <Route path="/settings" element={<Settings />}/>
 
-          </Routes>
-        </main>
-        
-        {/*  lábléc  */}
-        <Footer />
-        
-      </div>
-    </>
+              </Routes>
+            </main>
+            
+            {/* lábléc  */}
+            <Footer />
+            
+          </div>
+        </>
+    </ThemeProvider>
   )
 }
