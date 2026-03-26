@@ -21,7 +21,7 @@ export default function Register() {
   const navigate = useNavigate();
 
   //  Vizuális validáció a backend alapján 
-  // usertag: 3-32 karakter, csak kisbetű, szám, alulvonás
+  // usertag: 3-32 karakter, csak kisbetű, szám, alsovonal
   const isUsertagValid = usertag.length >= 3 && /^[a-z0-9_]+$/.test(usertag);
   const isPasswordStrong = 
     password.length >= 8 && 

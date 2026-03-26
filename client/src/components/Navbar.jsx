@@ -21,27 +21,6 @@ export default function Navbar() {
               Licit<span className="text-primary">GO</span>
             </span>
           </Link>
-
-          <Link 
-            to="/AddCar" 
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg animate-pulse border-2 border-red-400"
-          >
-            !Autó hozzáadása!
-          </Link>
-
-          <Link 
-            to="/AddAuction" 
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg animate-pulse border-2 border-red-400"
-          >
-            !Aukció indítása!
-          </Link>
-
-          <Link 
-            to="/dashboard" 
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg animate-pulse border-2 border-red-400"
-          >
-            !Dashboard teszt!
-          </Link>
           
           {/* Asztali menü */}
           <div className="hidden md:flex items-center space-x-8">
@@ -90,7 +69,6 @@ export default function Navbar() {
                   Regisztráció
                 </Link>
               </div>
-              
             )}
           </div>
 
