@@ -33,6 +33,15 @@ import finalizeAuctions from './utilities/FinalizeAuctions.js';
 // és middleware-ek beállítása
 const app = express();
 
+// If the app runs behind a proxy (Cloudflare / nginx), enable trust proxy
+// so that middleware like express-rate-limit can correctly read X-Forwarded-For.
+if (Configs.environment.isProduction) {
+    app.set('trust proxy', 1);
+} else {
+    // During development it's usually safe to trust the immediate proxy (if any)
+    app.set('trust proxy', 0);
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -51,11 +60,31 @@ const __dirname = path.dirname(__filename);
 // #endregion
 // #region Általános middleware-ek beállítása
 
+// Configure CORS to allow the client origins used in development and production.
+const allowedOrigins = [
+    'https://licitgo.com',
+    'http://www.licitgo.com',
+    'http://licitgo.com',
+    'https://www.licitgo.com',
+    'https://api.licitgo.com',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080'
+];
+
 const corsOptions = {
-    origin: ["http://localhost:5137", "http://localhost:3000"],
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('CORS policy: Origin not allowed'));
+    },
     credentials: true,
+    optionsSuccessStatus: 200,
 };
-app.use(cors(/*corsOptions*/));
+
+app.use(cors(corsOptions));
 app.use(cookieParser(Configs.cookieSecret));
 app.use(express.json());
 

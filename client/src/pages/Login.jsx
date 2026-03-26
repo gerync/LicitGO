@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 
 export default function Login() {
   const [formData, setFormData] = useState({
-    email: '',
+    identifier: '',
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -20,14 +20,20 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) {
+    // Handle browser autofill which may populate inputs without triggering React onChange.
+    const form = e.target;
+    const identifierValue = form.elements['identifier']?.value || formData.identifier;
+    const passwordValue = form.elements['password']?.value || formData.password;
+
+    if (!identifierValue || !passwordValue) {
       return toast.error("Kérlek, tölts ki minden mezőt!");
     }
 
     setIsLoading(true);
     
     try {
-      await login(formData);
+      // Send explicit payload using values read from DOM (covers autofill cases)
+      await login({ identifier: identifierValue, password: passwordValue });
       toast.success("Sikeres bejelentkezés!");
       navigate('/dashboard');
     } catch (error) {
@@ -58,18 +64,19 @@ export default function Login() {
             
             {/* Email mező */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-content mb-1">
+              <label htmlFor="identifier" className="block text-sm font-medium text-content mb-1">
                 Email cím (vagy Felhasználónév)
               </label>
               <input
-                id="email"
-                name="email"
+                id="identifier"
+                name="identifier"
                 type="text"
                 required
-                value={formData.email}
+                value={formData.identifier}
                 onChange={handleChange}
+                autoComplete="username email"
                 className="w-full bg-background border border-border rounded-lg p-3 text-content focus:ring-primary focus:border-primary transition-colors"
-                placeholder="pelda@email.hu"
+                placeholder="példa@email.hu"
               />
             </div>
 
@@ -90,6 +97,7 @@ export default function Login() {
                 required
                 value={formData.password}
                 onChange={handleChange}
+                autoComplete="current-password"
                 className="w-full bg-background border border-border rounded-lg p-3 text-content focus:ring-primary focus:border-primary transition-colors"
                 placeholder="••••••••"
               />

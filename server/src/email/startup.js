@@ -39,19 +39,19 @@ export async function sendTestEmailOnStartup() {
             if (error.response) {
                 if (Configs.server.defaultLanguage === 'HU') {
                     coloredlog(`Hiba az indítási értesítő email küldése során: `, colors.error);
-                    coloredlog(error.response, colors.error-stack);
+                    coloredlog(error.response, colors['error-stack']);
                 } else {
                     coloredlog('Error sending test email on startup: ', colors.error);
-                    coloredlog(error.response, colors.error-stack);
+                    coloredlog(error.response, colors['error-stack']);
                 }
             }
             else {
                 if (Configs.server.defaultLanguage === 'HU') {
                     coloredlog('Hiba az indítási értesítő email küldése során: ', colors.error);
-                    coloredlog(error.message, colors.error-stack);
+                    coloredlog(error.message, colors['error-stack']);
                 } else {
                     coloredlog('Error sending test email on startup: ', colors.error);
-                    coloredlog(error.message, colors.error-stack);
+                    coloredlog(error.message, colors['error-stack']);
                 }
             }
         }

@@ -7,7 +7,16 @@ import { coloredlog } from '@gerync/utils';
 export default async function FetchExchanges() {
     // #region Ellenőrzés: van-e már ma dátumhoz tartozó adat?
     const __filename = fileURLToPath(import.meta.url);
-    const filePath = path.join(path.dirname(__filename), 'exchangeRates.json');
+    // Store exchangeRates in the writable `media` directory so the
+    // container's non-root `node` user can write files reliably.
+    const projectRoot = path.resolve(path.dirname(__filename), '../../..');
+    const mediaDir = path.join(projectRoot, 'media');
+    try {
+        fs.mkdirSync(mediaDir, { recursive: true });
+    } catch (e) {
+        // ignore
+    }
+    const filePath = path.join(mediaDir, 'exchangeRates.json');
     
     const colors = Configs.colors;
 

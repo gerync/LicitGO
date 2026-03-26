@@ -12,9 +12,14 @@ RUN npm i --omit=dev
 COPY .env /usr/src/app/.env
 COPY . /usr/src/app
 
-# Ensure media directories exist and are writable by the non-root `node` user
+# Ensure media and exchange directories exist and are writable by the non-root `node` user
 RUN mkdir -p /usr/src/app/media/cars \
-	&& chown -R node:node /usr/src/app/media
+	&& mkdir -p /usr/src/app/src/utilities/exchange \
+	&& [ -f /usr/src/app/src/utilities/exchange/exchangeRates.json ] || echo '[]' > /usr/src/app/src/utilities/exchange/exchangeRates.json \
+	&& chown -R node:node /usr/src/app/media \
+	&& chown -R node:node /usr/src/app/src/utilities/exchange \
+	&& chmod -R u+rwX,g+rwX,o+rX /usr/src/app/media \
+	&& chmod -R u+rwX,g+rwX,o+rX /usr/src/app/src/utilities/exchange
 
 USER node
 

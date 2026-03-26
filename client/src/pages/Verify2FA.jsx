@@ -26,7 +26,7 @@ export default function Verify2FA() {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/auth/verify-2fa", {
+      const res = await fetch("https://api.licitgo.com/auth/verify-2fa", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

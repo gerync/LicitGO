@@ -8,14 +8,32 @@ import { coloredlog } from '@gerync/utils';
 // Adatbázis-séma inicializálása egy ideiglenes kapcsolat segítségével a fő pool létrehozása előtt
 async function initializeDatabase() {
     try {
-        // #region Ideiglenes kapcsolat létrehozása anélkül, hogy adatbázist adnánk meg
-        const tempConnection = await mysql.createConnection({
-            host: configs.db.host,
-            user: configs.db.user,
-            password: configs.db.password,
-            port: configs.db.port,
-            multipleStatements: true,
-        });
+        // Try to connect to the DB with retries, because the DB container
+        // may take a while to become ready in container orchestration.
+        const maxAttempts = 30;
+        const delayMs = 2000; // 2 seconds between attempts
+        let attempt = 0;
+        let tempConnection = null;
+        while (attempt < maxAttempts) {
+            try {
+                tempConnection = await mysql.createConnection({
+                    host: configs.db.host,
+                    user: configs.db.user,
+                    password: configs.db.password,
+                    port: configs.db.port,
+                    multipleStatements: true,
+                });
+                break; // success
+            } catch (connErr) {
+                attempt += 1;
+                const colors = configs.colors;
+                coloredlog(`Database connection attempt ${attempt}/${maxAttempts} failed: ${connErr.code || connErr.message}`, colors.warning);
+                if (attempt >= maxAttempts) {
+                    throw connErr;
+                }
+                await new Promise(res => setTimeout(res, delayMs));
+            }
+        }
         // #endregion
 
         // #region Adatbázis létrehozása, ha nem létezik
