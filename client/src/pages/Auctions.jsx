@@ -1,110 +1,85 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Loader2, Search, AlertCircle } from 'lucide-react';
 import AuctionCard from '../components/AuctionCard';
-import { Search, Filter } from 'lucide-react';
+import { apiFetch } from '../api/config';
 
 export default function Auctions() {
-  // --- IDEIGLENES KAMU ADATOK (Mock Data) a backend hiánya miatt ---
-  const mockAuctions = [
-    {
-      auctionId: 1,
-      status: 'ongoing',
-      currentPrice: 54500,
-      timeRemaining: 172800, 
-      car: {
-        manufacturer: 'Porsche',
-        model: '911 Carrera S',
-        modelyear: 2021,
-        odometerKM: 12500,
-        mainImagepath: 'https://images.unsplash.com/photo-1503376762365-33dea15b4206?q=80&w=800&auto=format&fit=crop'
-      }
-    },
-    {
-      auctionId: 2,
-      status: 'upcoming',
-      currentPrice: 0,
-      timeRemaining: 345600, 
-      car: {
-        manufacturer: 'BMW',
-        model: 'M4 Competition',
-        modelyear: 2023,
-        odometerKM: 3200,
-        mainImagepath: 'https://images.unsplash.com/photo-1617531653332-bd46c24f2068?q=80&w=800&auto=format&fit=crop'
-      }
-    },
-    {
-      auctionId: 3,
-      status: 'ongoing',
-      currentPrice: 18200,
-      timeRemaining: 3600, 
-      car: {
-        manufacturer: 'Audi',
-        model: 'RS6 Avant',
-        modelyear: 2018,
-        odometerKM: 85000,
-        mainImagepath: 'https://images.unsplash.com/photo-1606152421802-db97b9c7a11b?q=80&w=800&auto=format&fit=crop'
-      }
-    },
-    {
-      auctionId: 4,
-      status: 'ended',
-      currentPrice: 125000,
-      timeRemaining: 0, 
-      car: {
-        manufacturer: 'Mercedes-Benz',
-        model: 'G63 AMG',
-        modelyear: 2022,
-        odometerKM: 45000,
-        mainImagepath: 'https://images.unsplash.com/photo-1520031441872-265e4ff70366?q=80&w=800&auto=format&fit=crop'
-      }
-    }
-  ];
+  const [auctions, setAuctions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Most a mock adatokat töltjük be a state-be a fetch helyett
-  const [auctions, setAuctions] = useState(mockAuctions);
+  useEffect(() => {
+    const fetchAuctions = async () => {
+      try {
+        setIsLoading(true);
+        const response = await apiFetch('/auction/list', { method: 'GET' });
+        
+        const data = Array.isArray(response) ? response : response.auctions || [];
+        setAuctions(data);
+        setError(null);
+      } catch (err) {
+        console.error('Hiba az aukciók letöltésekor:', err);
+        setError('Nem sikerült betölteni az aukciókat. Lehet, hogy a szerver jelenleg nem elérhető.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAuctions();
+  }, []);
+
+  const filteredAuctions = auctions.filter(auction => {
+    const title = auction.make || auction.title || auction.carName || '';
+    return title.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      
-      {/* Fejléc és kereső */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-content tracking-tight">Aktuális Aukciók</h1>
-          <p className="text-content-muted mt-1">Találd meg a következő álomautódat.</p>
+          <h1 className="text-3xl font-extrabold text-content">Aktuális Aukciók</h1>
+          <p className="text-content-muted mt-2">Böngéssz a legújabb licitálható autók között!</p>
         </div>
         
-        {/* Keresőmező dizájn */}
-        <div className="flex w-full md:w-auto gap-2">
-          <div className="relative flex-grow md:w-64">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-content-muted" />
-            </div>
-            <input
-              type="text"
-              placeholder="Keresés (pl. BMW)..."
-              className="pl-9 block w-full bg-surface border border-border rounded-lg py-2.5 text-content focus:ring-primary focus:border-primary text-sm"
-            />
+        <div className="relative w-full md:w-72">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-content-muted" />
           </div>
-          <button className="bg-surface border border-border text-content p-2.5 rounded-lg hover:bg-background transition-colors flex items-center justify-center">
-            <Filter className="h-5 w-5" />
-          </button>
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-surface text-content placeholder-content-muted focus:ring-primary focus:border-primary transition-colors"
+            placeholder="Keresés (pl. BMW)..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
 
-      {/* Grid rács a kártyáknak */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {auctions.map(auction => (
-          <AuctionCard key={auction.auctionId} auction={auction} />
-        ))}
-      </div>
-
-      {/* Ha nincs találat */}
-      {auctions.length === 0 && (
-        <div className="text-center py-20 bg-surface rounded-2xl border border-border">
-          <h3 className="text-lg font-medium text-content mb-2">Nem találtunk autót</h3>
-          <p className="text-content-muted">Próbálj meg más keresési feltételeket megadni.</p>
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+          <p className="text-content-muted font-medium">Aukciók betöltése a szerverről...</p>
+        </div>
+      ) : error ? (
+        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-6 text-center max-w-2xl mx-auto">
+          <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-2" />
+          <h3 className="text-lg font-bold text-red-500 mb-1">Hoppá, valami elromlott!</h3>
+          <p className="text-red-500/80">{error}</p>
+        </div>
+      ) : filteredAuctions.length === 0 ? (
+        <div className="bg-surface border border-border rounded-lg p-12 text-center">
+          <Search className="w-12 h-12 text-content-muted mx-auto mb-4 opacity-50" />
+          <h3 className="text-xl font-bold text-content mb-2">Nincsenek találatok</h3>
+          <p className="text-content-muted">Jelenleg nincs aktív aukció az adatbázisban.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAuctions.map((auction) => (
+            <AuctionCard key={auction.id || auction._id} auction={auction} />
+          ))}
         </div>
       )}
-
     </div>
   );
 }
