@@ -50,23 +50,42 @@ const uploadMultipleCarImagesFields = uploadCarImages.fields([
 // Wrapper to normalize req.files to an array (older code expects an array)
 const uploadMultipleCarImages = (req, res, next) => {
     uploadMultipleCarImagesFields(req, res, function (err) {
-        if (err) return next(err);
-
-        if (!req.files) {
-            req.files = [];
+        if (!err) {
+            // Normalize to array
+            if (!req.files) req.files = [];
+            else if (!Array.isArray(req.files)) {
+                const combined = [];
+                Object.keys(req.files).forEach((key) => {
+                    const arr = req.files[key];
+                    if (Array.isArray(arr)) combined.push(...arr);
+                });
+                req.files = combined;
+            }
             return next();
         }
 
-        if (Array.isArray(req.files)) return next();
+        // If multer rejected due to unexpected field names, accept any files as a fallback
+        // Multer v2 uses error.code === 'LIMIT_UNEXPECTED_FILE' for this
+        if (err && (err.code === 'LIMIT_UNEXPECTED_FILE' || err.message?.includes('Unexpected field'))) {
+            // fallback to any() which accepts all file field names
+            uploadCarImages.any()(req, res, function (err2) {
+                if (err2) return next(err2);
 
-        // Multer.fields produces an object: { fieldname: [files...] }
-        const combined = [];
-        Object.keys(req.files).forEach((key) => {
-            const arr = req.files[key];
-            if (Array.isArray(arr)) combined.push(...arr);
-        });
-        req.files = combined;
-        next();
+                if (!req.files) req.files = [];
+                else if (!Array.isArray(req.files)) {
+                    const combined = [];
+                    Object.keys(req.files).forEach((key) => {
+                        const arr = req.files[key];
+                        if (Array.isArray(arr)) combined.push(...arr);
+                    });
+                    req.files = combined;
+                }
+                return next();
+            });
+            return;
+        }
+
+        return next(err);
     });
 };
 
