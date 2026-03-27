@@ -42,7 +42,33 @@ const uploadCarImages = multer({
     }
 });
 
-const uploadMultipleCarImages = uploadCarImages.array('carImages', Configs.images.maximumFilesUpload);
+const uploadMultipleCarImagesFields = uploadCarImages.fields([
+    { name: 'images', maxCount: Configs.images.maximumFilesUpload },
+    { name: 'carImages', maxCount: Configs.images.maximumFilesUpload }
+]);
+
+// Wrapper to normalize req.files to an array (older code expects an array)
+const uploadMultipleCarImages = (req, res, next) => {
+    uploadMultipleCarImagesFields(req, res, function (err) {
+        if (err) return next(err);
+
+        if (!req.files) {
+            req.files = [];
+            return next();
+        }
+
+        if (Array.isArray(req.files)) return next();
+
+        // Multer.fields produces an object: { fieldname: [files...] }
+        const combined = [];
+        Object.keys(req.files).forEach((key) => {
+            const arr = req.files[key];
+            if (Array.isArray(arr)) combined.push(...arr);
+        });
+        req.files = combined;
+        next();
+    });
+};
 
 
 const PfpImageDir = path.join(__dirname, '../../media/users');
