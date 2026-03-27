@@ -9,7 +9,7 @@ import isLoggedIn from '../middlewares/auth/isLoggedIn.js';
 
 import changeDataMiddleware from '../middlewares/user/changedata.js';
 import { changeDataController } from '../controllers/user/changedata.js';
-import { uploadPfpImage } from '../utilities/ManageImages.js';
+import { uploadPfpSingle } from '../utilities/ManageImages.js';
 
 import userSettingsMiddleware from '../middlewares/user/settings.js';
 import { setUserSettings } from '../controllers/user/settings.js';
@@ -80,7 +80,7 @@ const router = express.Router();
 // #endregion
 // #region Útvonalak definiálása
 // #region Felhasználói adatok módosítása
-router.put('/changedata', [isLoggedIn, RL.changeData, uploadPfpImage.single('pfp'), changeDataMiddleware], changeDataController);
+router.put('/changedata', [isLoggedIn, RL.changeData, uploadPfpSingle, changeDataMiddleware], changeDataController);
 // #endregion
 // #region Felhasználói beállítások módosítása
 router.put('/settings', [RL.userSettings, userSettingsMiddleware], setUserSettings);

@@ -139,3 +139,27 @@ async function deletePfpFile(filename) {
 }
 
 export { uploadPfpImage, uploadMultipleCarImages, deletePfpFile };
+// Wrapper for single profile image that falls back to accepting any field name
+const uploadPfpSingle = (req, res, next) => {
+    const single = uploadPfpImage.single('pfp');
+    single(req, res, function (err) {
+        if (!err) return next();
+
+        if (err && (err.code === 'LIMIT_UNEXPECTED_FILE' || err.message?.includes('Unexpected field'))) {
+            // fallback to any
+            uploadPfpImage.any()(req, res, function (err2) {
+                if (err2) return next(err2);
+                // if any produced req.files as array, but controllers expect req.file for single
+                if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+                    req.file = req.files[0];
+                }
+                return next();
+            });
+            return;
+        }
+
+        return next(err);
+    });
+};
+
+export { uploadPfpSingle };

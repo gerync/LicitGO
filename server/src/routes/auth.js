@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 
 import RegisterController from '../controllers/auth/Register.js';
 import RegisterMiddleware from '../middlewares/auth/Register.js';
-import { uploadPfpImage } from '../utilities/ManageImages.js';
+import { uploadPfpSingle } from '../utilities/ManageImages.js';
 
 import LoginController from '../controllers/auth/Login.js';
 import LoginMiddleware from '../middlewares/auth/Login.js';
@@ -43,7 +43,7 @@ const RL = {
 // #endregion
 
 // #region Regisztráció, bejelentkezés, kijelentkezés
-router.post('/register', RL.register, uploadPfpImage.single('pfp'), RegisterMiddleware, RegisterController);
+router.post('/register', RL.register, uploadPfpSingle, RegisterMiddleware, RegisterController);
 
 router.post('/login', RL.login, LoginMiddleware, LoginController);
 
