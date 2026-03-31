@@ -2,9 +2,9 @@ import { Link } from 'react-router-dom';
 import { Clock, Tag } from 'lucide-react';
 
 export default function AuctionCard({ auction }) {
-  const title = auction.title || auction.carName || auction.make || 'Ismeretlen autó';
-  const price = auction.currentPrice || auction.startingPrice || auction.price || 0;
-  const image = auction.imageUrl || auction.image || 'https://via.placeholder.com/400x300?text=Nincs+kép';
+  const title = auction.car ? `${auction.car.manufacturer} ${auction.car.model}` : 'Ismeretlen autó';
+  const price = auction.currentPrice || 0;
+  const image = auction.car?.mainImagepath || 'https://via.placeholder.com/400x300?text=Nincs+kép';
   
   // Use the status from API (already calculated on backend) or calculate from endtime
   const isActive = auction.status === 'ongoing' || auction.status === 'Folyamatban';
@@ -61,7 +61,7 @@ export default function AuctionCard({ auction }) {
         </div>
 
         <Link 
-          to={`/auctions/${auction.id || auction._id}`}
+          to={`/auctions/${auction.auctionId}`}
           className="mt-6 w-full flex items-center justify-center bg-background border border-border text-content font-bold py-2 px-4 rounded-lg hover:bg-primary hover:text-white hover:border-primary transition-colors"
         >
           Részletek megtekintése
