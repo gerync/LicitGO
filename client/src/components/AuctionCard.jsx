@@ -6,13 +6,15 @@ export default function AuctionCard({ auction }) {
   const price = auction.currentPrice || auction.startingPrice || auction.price || 0;
   const image = auction.imageUrl || auction.image || 'https://via.placeholder.com/400x300?text=Nincs+kép';
   
-  const endDate = new Date(auction.endDate || auction.endTime);
-  const now = new Date();
-  const isActive = endDate > now; 
-
-  const diffTime = Math.abs(endDate - now);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  const timeLeftString = isActive ? `Még ${diffDays} nap van hátra` : 'Az aukció véget ért';
+  // Use the status from API (already calculated on backend) or calculate from endtime
+  const isActive = auction.status === 'ongoing' || auction.status === 'Folyamatban';
+  
+  let timeLeftString = 'Az aukció véget ért';
+  if (auction.timeRemaining !== undefined && auction.timeRemaining > 0) {
+    // timeRemaining is in seconds from the backend
+    const diffDays = Math.ceil(auction.timeRemaining / (60 * 60 * 24));
+    timeLeftString = `Még ${diffDays} nap van hátra`;
+  }
 
   return (
     <div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col">
