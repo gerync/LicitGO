@@ -57,6 +57,11 @@ export default async function setupDB() {
                 [colors.success, colors.highlight, colors.warning, colors.error]);
         }
         // #endregion
+    }
+    const [carRows] = await pool.query('SELECT COUNT(*) AS count FROM auctions WHERE endtime > NOW()');
+    if (carRows[0].count === 0) {
+        const [userRows] = await pool.query('SELECT usertoken FROM users WHERE type = ?', ['superadmin']);
+        const encryptedToken = userRows.length > 0 ? userRows[0].usertoken : null;
         const defaultCars = [
             {
                 manufacturer: 'Toyota',
@@ -257,7 +262,6 @@ export default async function setupDB() {
             const [res] = await pool.query(insertCarQuery, carParams);
             carids.push(res.insertId);
         }
-        // Create a default auction for each inserted car
         const defaultauctions = carids.map((id, idx) => ({
             carid: id,
             startingpriceUSD: 8000 + idx * 2000,
