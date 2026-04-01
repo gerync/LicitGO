@@ -8,16 +8,16 @@ export default async function GetAuctionController(req, res) {
     const conn = await pool.getConnection();
     const lang = req.lang;
     const query = `
-        SELECT 
-            auctions.*, 
-            cars.*, 
+        SELECT
+            auctions.*,
+            cars.*,
             users.usertag,
             users.fullname,
-            (SELECT MAX(bidamountUSD) FROM bids WHERE bids.auctionid = auctions.id) AS currentPrice,
+            COALESCE((SELECT MAX(bidamountUSD) FROM bids WHERE bids.auctionid = auctions.id), auctions.startingpriceUSD) AS currentPrice,
             (SELECT COUNT(*) FROM bids WHERE bids.auctionid = auctions.id) AS bidcount
         FROM auctions
-        JOIN cars ON auctions.carid = cars.id
-        JOIN users ON cars.ownertoken = users.usertoken
+        LEFT JOIN cars ON auctions.carid = cars.id
+        LEFT JOIN users ON cars.ownertoken = users.usertoken
         WHERE auctions.id = ?
     `;
     const [rows] = await conn.query(query, [auctionId]);
