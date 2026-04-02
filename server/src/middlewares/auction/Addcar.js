@@ -55,14 +55,17 @@ export default function AddCarMiddleware(req, res, next) {
     //#endregion
 
     //#region Jellemzők (features) feldolgozása
-    if (typeof features === 'string') {
+    if (features === undefined) {
+        features = undefined;
+    }
+    else if (typeof features === 'string') {
         try {
             features = JSON.parse(features);
         } catch (e) {
             throw new Error([ lang === 'HU' ? 'Érvénytelen jellemzők formátum.' : 'Invalid features format.', 400 ]);
         }
     }
-    if (features !== undefined && (typeof features !== 'object' || features === null)) {
+    else if (typeof features !== 'object' || features === null) {
         throw new Error([ lang === 'HU' ? 'Érvénytelen jellemzők formátum.' : 'Invalid features format.', 400 ]);
     }
     //#endregion
