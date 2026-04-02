@@ -109,8 +109,8 @@ export default async function ListAuctionsController(req, res) {
 
         const query = `
             SELECT 
-                auctions.id,
-                auctions.carid,
+                auctions.id AS auctionId,
+                auctions.carid AS carId,
                 auctions.startingpriceUSD,
                 auctions.reservepriceUSD,
                 auctions.starttime,
@@ -193,8 +193,8 @@ export default async function ListAuctionsController(req, res) {
             const reserveMet = row.reservepriceUSD ? currentPrice >= row.reservepriceUSD : true;
             
             auctions.push({
-                auctionId: row.id,
-                carId: row.carid,
+                auctionId: row.auctionId,
+                carId: row.carId,
                 currentPrice: convertedPrices[priceIndex],
                 reservePriceUSD: convertedPrices[priceIndex + 1],
                 reserveMet: reserveMet,
@@ -214,7 +214,7 @@ export default async function ListAuctionsController(req, res) {
                     fueltype: row.fueltype,
                     transmission: row.transmission,
                     bodytype: row.bodytype,
-                    mainImagepath: images[0] ? `${Configs.server.domain}/media/cars/${images[0]}` : null
+                    mainImagepath: images[0] ? `${Configs.server.domain()}/media/cars/${images[0]}` : null
                 }
             });
         }

@@ -6,6 +6,20 @@ import configs from '../configs/Configs.js';
 // https://tinyurl.com/swagger-example
 
 // #region Swagger api dokumentáció definíció
+function getAPIURL() {
+    const domain = configs.server.domain();
+    const protocol = domain.startsWith('https://') ? 'https' : (domain.startsWith('http://') ? 'http' : 'https');
+    const hostWithPort = domain.replace(/^https?:\/\//, '');
+    const host = hostWithPort.split(':')[0];
+    // For local development (localhost / 127.0.0.1) return the configured domain as-is
+    if (host === 'localhost' || host === '127.0.0.1' || host.endsWith('.local')) {
+        return domain;
+    }
+    // Strip existing 'api.' if present, then prepend it (idempotent)
+    const baseHost = host.startsWith('api.') ? host.slice(4) : host;
+    return `${protocol}://api.${baseHost}`;
+}
+    
 const swaggerDefinition = {
     openapi: '3.0.3',
     info: {
@@ -15,9 +29,13 @@ const swaggerDefinition = {
     },
     servers: [
         {
-            url: configs.server.domain(),
+            url: getAPIURL(),
             description: 'Current server',
         },
+        {
+            url: 'http://api.licitgo.com',
+            description: 'Production server',
+        }
     ],
     tags: [
         { name: 'Auth', description: 'Registration and login' },
@@ -177,6 +195,34 @@ const swaggerDefinition = {
                     weightKG: { type: 'integer', nullable: true },
                     features: { type: 'object', additionalProperties: true },
                     factoryExtras: { type: 'string' },
+                },
+            },
+            AddCarForm: {
+                type: 'object',
+                required: ['manufacturer', 'model', 'color', 'odometerKM', 'modelyear', 'efficiency', 'efficiencyunit', 'enginecapacity', 'fueltype', 'transmission', 'bodytype', 'doors', 'seats', 'vin', 'images'],
+                properties: {
+                    manufacturer: { type: 'string', example: 'Toyota' },
+                    model: { type: 'string', example: 'Corolla' },
+                    color: { type: 'string', example: 'blue' },
+                    odometerKM: { type: 'integer', example: 120000 },
+                    modelyear: { type: 'integer', example: 2019 },
+                    efficiency: { type: 'number', format: 'float', example: 85.5 },
+                    efficiencyunit: { type: 'string', enum: ['HP', 'kW'], example: 'HP' },
+                    enginecapacity: { type: 'integer', example: 1598 },
+                    fueltype: { type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other'] },
+                    transmission: { type: 'string', enum: ['manual', 'automatic', 'semi-automatic', 'CVT', 'dual-clutch', 'other'] },
+                    bodytype: { type: 'string', enum: ['sedan', 'hatchback', 'SUV', 'coupe', 'convertible', 'wagon', 'van', 'truck', 'other'] },
+                    description: { type: 'string' },
+                    emissionsGKM: { type: 'integer', nullable: true },
+                    doors: { type: 'integer', example: 4 },
+                    seats: { type: 'integer', example: 5 },
+                    vin: { type: 'string', minLength: 17, maxLength: 17 },
+                    maxspeedKMH: { type: 'integer', nullable: true },
+                    zeroToHundredSec: { type: 'number', format: 'float', nullable: true },
+                    weightKG: { type: 'integer', nullable: true },
+                    features: { type: 'string', description: 'JSON string or object' },
+                    factoryExtras: { type: 'string' },
+                    images: { type: 'array', items: { type: 'string', format: 'binary' }, minItems: 5, maxItems: 50 }
                 },
             },
             AddCarResponse: {
@@ -588,7 +634,7 @@ const swaggerDefinition = {
                 requestBody: {
                     required: true,
                     content: {
-                        'application/json': { schema: { $ref: '#/components/schemas/AddCarRequest' } },
+                        'multipart/form-data': { schema: { $ref: '#/components/schemas/AddCarForm' } },
                     },
                 },
                 responses: {

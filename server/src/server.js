@@ -63,6 +63,7 @@ const __dirname = path.dirname(__filename);
 // Configure CORS to allow the client origins used in development and production.
 const allowedOrigins = [
     'https://licitgo.com',
+    'https://api.licitgo.com',
     'http://www.licitgo.com',
     'http://licitgo.com',
     'https://www.licitgo.com',
@@ -98,9 +99,18 @@ app.use('/media/users', express.static(path.join(__dirname, '../media/users')));
 app.use(cookieMiddleware);
 // #endregion
 // #region Swagger dokumentáció beállítása
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+// Disable caching for docs assets so browsers / proxies don't serve stale init files
+app.use('/docs', (req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+});
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(null, {
     explorer: true,
     swaggerOptions: {
+        // Load the spec dynamically from /docs.json so the UI picks up servers correctly
+        url: '/docs.json',
         persistAuthorization: true,
         // Bizonyos kérésekhez cookie-k küldése
         requestInterceptor: (req) => {
@@ -109,7 +119,12 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
         },
     },
 }));
-app.get('/docs.json', (req, res) => res.status(200).json(swaggerSpec));
+app.get('/docs.json', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    return res.status(200).json(swaggerSpec);
+});
 // #endregion
 // #region API útvonalak beállítása
 app.use('/auth', authRoutes);
@@ -124,6 +139,13 @@ app.use('/user', userRoutes);
 // #endregion
 // #region Hibakezelő middleware beállítása és szerver bootolása
 app.use(errorHandler);
+
+app.use((req, res) => {
+    return res.status(404).json({
+        message: Configs.server.defaultLanguage === 'HU' ? 'Az erőforrás nem található.' : 'Resource not found.'
+    });
+});
+
 const PORT = Configs.server.port
 app.listen(PORT, async () => {
     await setup();

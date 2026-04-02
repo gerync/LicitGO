@@ -7,10 +7,17 @@ export default async function GetAuctionController(req, res) {
     const auctionId = req.auctionId;
     const conn = await pool.getConnection();
     const lang = req.lang;
+    // Debug: log requested auctionId to help diagnose missing rows
+    console.log('GetAuctionController: requested auctionId=', auctionId);
     const query = `
         SELECT
-            auctions.*,
-            cars.*,
+            auctions.id AS auctionId,
+            auctions.carid AS carId,
+            auctions.startingpriceUSD,
+            auctions.reservepriceUSD,
+            auctions.starttime,
+            auctions.endtime,
+            cars.*, 
             users.usertag,
             users.fullname,
             COALESCE((SELECT MAX(bidamountUSD) FROM bids WHERE bids.auctionid = auctions.id), auctions.startingpriceUSD) AS currentPrice,
@@ -21,8 +28,9 @@ export default async function GetAuctionController(req, res) {
         WHERE auctions.id = ?
     `;
     const [rows] = await conn.query(query, [auctionId]);
-    
-    if (rows.length === 0) {
+    console.log('GetAuctionController: DB rows length =', Array.isArray(rows) ? rows.length : typeof rows);
+    if (!Array.isArray(rows) || rows.length === 0) {
+        console.log('GetAuctionController: no rows returned for auctionId=', auctionId, 'query param');
         conn.release();
         throw new Error([ req.lang === 'HU' ? 'Aukció nem található.' : 'Auction not found.', 404 ]);
     }
@@ -85,7 +93,7 @@ export default async function GetAuctionController(req, res) {
     const reserveMet = row.reservepriceUSD ? currentPrice >= row.reservepriceUSD : true;
     // #region Válasz összeállítása
     const auctionDetails = {
-        auctionId: row.id,
+        auctionId: row.auctionId,
         carId: row.carid,
         currentPrice: await convert(currentPrice, 'USD', currency),
         reserveMet: reserveMet,
@@ -121,7 +129,7 @@ export default async function GetAuctionController(req, res) {
                 usertag: row.usertag,
                 fullname: row.fullname
             },
-            images: images.map(img => `${Configs.server.domain}/media/cars/${img}`)
+            images: images.map(img => `${Configs.server.domain()}/media/cars/${img}`)
         }
     };
     conn.release();
