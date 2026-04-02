@@ -14,7 +14,7 @@ export default function AuctionDetail() {
     const fetchAuctionDetails = async () => {
       try {
         setIsLoading(true);
-        const response = await apiFetch(`/auction/getAuction?id=${auctionId}`, {
+        const response = await apiFetch(`/auction/${auctionId}`, {
           method: 'GET',
         });
         

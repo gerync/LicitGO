@@ -3,8 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.licitgo.com';
 export const apiFetch = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
 
-  // Default options: do not force a Content-Type header because
-  // FormData requests must omit it so the browser can set the boundary.
+
   const defaultOptions = {
     headers: {},
     credentials: 'include',
@@ -19,7 +18,6 @@ export const apiFetch = async (endpoint, options = {}) => {
     },
   };
 
-  // If body is a plain object (not FormData), stringify as JSON
   if (finalOptions.body && typeof finalOptions.body === 'object' && !(finalOptions.body instanceof FormData)) {
     finalOptions.body = JSON.stringify(finalOptions.body);
     finalOptions.headers['Content-Type'] = finalOptions.headers['Content-Type'] || 'application/json';
@@ -44,15 +42,11 @@ export const apiFetch = async (endpoint, options = {}) => {
   }
 };
 
-// Lightweight `api` client used by pages that expect an axios/fetch-like
-// interface (methods return the raw Response object so callers can check
-// `response.ok` / call `response.json()` themselves).
 export const api = {
   request: (endpoint, { method = 'GET', body = null, headers = {}, ...opts } = {}) => {
     const url = `${API_BASE_URL}${endpoint}`;
 
     const finalHeaders = { ...headers };
-    // Don't set JSON content-type if body is FormData
     if (body && !(body instanceof FormData) && !finalHeaders['Content-Type']) {
       finalHeaders['Content-Type'] = 'application/json';
     }

@@ -15,7 +15,14 @@ export default function Dashboard() {
     const fetchMyData = async () => {
       try {
         setIsLoading(true);
-        const response = await apiFetch('/user/profile', { method: 'GET' });
+        const usertag = user?.usertag || user?.username;
+        if (!usertag) {
+          setError('Felhasználónév nem elérhető.');
+          setIsLoading(false);
+          return;
+        }
+        
+        const response = await apiFetch(`/user/profile/${usertag}`, { method: 'GET' });
         
         const userCars = response.cars || response.auctions || response.data?.auctions || [];
         setMyAuctions(userCars);
@@ -29,7 +36,7 @@ export default function Dashboard() {
     };
 
     fetchMyData();
-  }, []);
+  }, [user]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

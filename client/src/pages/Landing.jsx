@@ -35,7 +35,7 @@ export default function Landing() {
                 <Car className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-content mb-3">Kiváló kínálat</h3>
-              <p className="text-content-muted">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</p>
+              <p className="text-content-muted">Alaposan átvizsgált gépjárművek, hogy neked csak a választással kelljen foglalkoznod.</p>
             </div>
 
             {/* 2. Kártya */}
@@ -44,7 +44,7 @@ export default function Landing() {
                 <Clock className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-content mb-3">Valós idejű licit</h3>
-              <p className="text-content-muted">bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb</p>
+              <p className="text-content-muted">Éld át az árverések izgalmát élőben! Kövesd a liciteket másodpercre pontosan, bárhonnan.</p>
             </div>
 
             {/* 3. Kártya */}
@@ -53,7 +53,7 @@ export default function Landing() {
                 <ShieldCheck className="w-8 h-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-content mb-3">Biztonságos eladás</h3>
-              <p className="text-content-muted">cccccccccccccccccccccccccccccc</p>
+              <p className="text-content-muted">Garantált kifizetés és egyszerűsített adásvétel. Nálunk az autód a legjobb kezekben van.</p>
             </div>
 
           </div>
