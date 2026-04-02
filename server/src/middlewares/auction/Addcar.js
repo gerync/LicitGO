@@ -62,7 +62,8 @@ export default function AddCarMiddleware(req, res, next) {
         try {
             features = JSON.parse(features);
         } catch (e) {
-            throw new Error([ lang === 'HU' ? 'Érvénytelen jellemzők formátum.' : 'Invalid features format.', 400 ]);
+            // If it's a plain comma-separated string like "klima, asd", split it into an array
+            features = features.split(',').map(item => item.trim()).filter(item => item.length > 0);
         }
     }
     else if (typeof features !== 'object' || features === null) {
