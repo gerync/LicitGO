@@ -56,10 +56,13 @@ export default async function GetAuctionController(req, res) {
     
     // #region Felszereltség feldolgozása
     let features = null;
-    try {
-        features = row.features ? JSON.parse(row.features) : null;
-    } catch (e) {
-        console.error('Failed to parse features JSON:', e);
+    if (row.features) {
+        try {
+            features = JSON.parse(row.features);
+        } catch (e) {
+            // Ha nem JSON (pl. a SetupDB-ben megadott vesszős lista)
+            features = row.features.split(',').map(item => item.trim()).filter(Boolean);
+        }
     }
     // #endregion
     // #region Állapot és hátralévő idő kiszámítása
