@@ -96,8 +96,8 @@ export default function AddCarMiddleware(req, res, next) {
     if (isNaN(modelyear) || modelyear < 1886 || modelyear > new Date().getFullYear() + 1) {
         throw new Error([ lang === 'HU' ? 'Érvénytelen gyártási év.' : 'Invalid model year.', 400 ]);
     }
-    if (isNaN(efficiency) || efficiency < 0 || efficiency >= 1000) {
-        throw new Error([ lang === 'HU' ? 'Érvénytelen teljesítmény (0–999.99).' : 'Invalid efficiency (0–999.99).', 400 ]);
+    if (isNaN(efficiency) || efficiency < 0 || efficiency > 1000) {
+        throw new Error([ lang === 'HU' ? 'Érvénytelen teljesítmény (0–1000).' : 'Invalid efficiency (0–1000).', 400 ]);
     }
     if (isNaN(enginecapacity) || enginecapacity <= 0) {
         throw new Error([ lang === 'HU' ? 'Érvénytelen hengerűrtartalom.' : 'Invalid engine capacity.', 400 ]);

@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS cars (
     model VARCHAR(150) NOT NULL,
     odometerKM INT NOT NULL,
     modelyear INT NOT NULL,
-    efficiency DECIMAL(4,2) NOT NULL,
+    efficiency DECIMAL(10, 2) NOT NULL,
     efficiencyunit ENUM('HP', 'kW') NOT NULL,
     enginecapacityCC INT NOT NULL,
     fueltype ENUM('gasoline', 'diesel', 'electric', 'hybrid', 'other') DEFAULT 'gasoline' NOT NULL,
