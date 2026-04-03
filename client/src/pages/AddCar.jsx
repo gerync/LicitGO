@@ -38,17 +38,24 @@ export default function AddCar() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (images.length === 0) {
-      toast.error("Legalább egy képet fel kell töltened az autóról!");
+
+    if (images.length < 5) {
+      toast.error("Legalább 5 képet fel kell töltened az autóról!");
+      return;
+    }
+    if (images.length > 50) {
+      toast.error("Legfeljebb 50 képet tölthetsz fel!");
       return;
     }
 
     setIsLoading(true);
     try {
       const submitData = new FormData();
-      
+
       Object.keys(formData).forEach(key => {
-        submitData.append(key, formData[key]);
+        if (formData[key] !== '' && formData[key] !== null) {
+          submitData.append(key, formData[key]);
+        }
       });
 
       images.forEach((image) => {
@@ -56,14 +63,14 @@ export default function AddCar() {
       });
 
       const response = await api.post('/auction/addcar', submitData);
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Hiba történt az autó feltöltésekor.");
       }
 
       toast.success("Autó sikeresen feltöltve!");
-      navigate('/dashboard'); 
+      navigate('/dashboard');
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -73,7 +80,7 @@ export default function AddCar() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      
+
       <div className="text-center mb-10">
         <h1 className="text-3xl font-extrabold text-content">Új autó feltöltése</h1>
         <p className="text-content-muted mt-2">Add meg a jármű adatait a licitre bocsátáshoz.</p>
@@ -84,7 +91,7 @@ export default function AddCar() {
         <div className="flex items-center justify-between relative">
           <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-border z-0"></div>
           <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-primary z-0 transition-all duration-300" style={{ width: `${((currentStep - 1) / 3) * 100}%` }}></div>
-          
+
           {[
             { step: 1, icon: Car, label: "Alapadatok" },
             { step: 2, icon: Wrench, label: "Motor" },
@@ -103,7 +110,7 @@ export default function AddCar() {
 
       {/* Űrlap */}
       <form onSubmit={handleSubmit} className="bg-surface border border-border rounded-2xl p-6 md:p-8 shadow-sm">
-        
+
         {/* Alapadatok */}
         {currentStep === 1 && (
           <div className="space-y-6 animate-fadeIn">
@@ -125,8 +132,8 @@ export default function AddCar() {
             <h2 className="text-xl font-bold text-content mb-4 border-b border-border pb-2">2. Motor és Teljesítmény</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div><label className="block text-sm font-medium mb-1">Kilométeróra állása (km)</label><input required name="odometerKM" value={formData.odometerKM} onChange={handleChange} type="number" className="w-full bg-background border border-border rounded-lg p-2.5 text-content" /></div>
-              <div><label className="block text-sm font-medium mb-1">Hengerűrtartalom (cm3)</label><input name="enginecapacity" value={formData.enginecapacity} onChange={handleChange} type="number" className="w-full bg-background border border-border rounded-lg p-2.5 text-content" /></div>
-              
+              <div><label className="block text-sm font-medium mb-1">Hengerűrtartalom (cm3)</label><input required name="enginecapacity" value={formData.enginecapacity} onChange={handleChange} type="number" className="w-full bg-background border border-border rounded-lg p-2.5 text-content" /></div>
+
               <div>
                 <label className="block text-sm font-medium mb-1">Üzemanyag</label>
                 <select required name="fueltype" value={formData.fueltype} onChange={handleChange} className="w-full bg-background border border-border rounded-lg p-2.5 text-content">
@@ -137,7 +144,7 @@ export default function AddCar() {
                   <option value="hybrid">Hibrid</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium mb-1">Váltó</label>
                 <select required name="transmission" value={formData.transmission} onChange={handleChange} className="w-full bg-background border border-border rounded-lg p-2.5 text-content">
@@ -190,7 +197,7 @@ export default function AddCar() {
         {currentStep === 4 && (
           <div className="space-y-6 animate-fadeIn">
             <h2 className="text-xl font-bold text-content mb-4 border-b border-border pb-2">4. Képek feltöltése</h2>
-            
+
             <div className="border-2 border-dashed border-border rounded-xl p-8 text-center bg-background hover:bg-border/20 transition-colors cursor-pointer relative">
               <input type="file" multiple accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
               <Upload className="w-12 h-12 text-primary mx-auto mb-4" />
