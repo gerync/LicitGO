@@ -11,6 +11,7 @@ export default async function placeBidController(req, res) {
     const conn = await pool.getConnection();
     const currency = req.currency;
     try {
+        console.log('placeBid request:', { auctionID, bidamount, currency, usertoken });
         // #region Aukció lekérése
         const [auctionRows] = await conn.query('SELECT * FROM auctions INNER JOIN cars ON auctions.carid = cars.id WHERE auctions.id = ?', [auctionID]);
         if (auctionRows.length === 0) {

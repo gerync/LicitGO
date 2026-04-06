@@ -1,4 +1,7 @@
 export default function placeBidMiddleware(req, res, next) {
+    try {
+        console.log('placeBid middleware req.params:', req.params, 'body:', req.body, 'headers.origin:', req.headers.origin, 'cookies:', req.cookies);
+    } catch (e) {}
     // #region licit adatainak ellenőrzése
     const auctionID = req.params.auctionID ?? req.body.auctionId ?? req.body.auctionID ?? req.body.auctionid;
     const bidamount = req.body.bidamount ?? req.body.amount ?? req.body.bidAmount ?? req.body.Amount;
