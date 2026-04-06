@@ -4,8 +4,8 @@ import sendEmail from '../../email/send.js';
 import Configs from '../../configs/Configs.js';
 
 export default async function placeBidController(req, res) {
-    const auctionID = parseInt(req.params.auctionID);
-    const bidamount = parseFloat(req.body.bidamount);
+    const auctionID = parseInt(req.params.auctionID ?? req.body.auctionId ?? req.body.auctionID ?? req.body.auctionid);
+    const bidamount = parseFloat(req.body.bidamount ?? req.body.amount ?? req.body.bidAmount ?? req.body.Amount);
     const usertoken = req.usertoken;
     const lang = req.lang;
     const conn = await pool.getConnection();
