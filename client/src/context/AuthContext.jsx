@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { apiFetch } from '../api/config';
 import toast from 'react-hot-toast';
 
@@ -10,6 +10,36 @@ export const AuthProvider = ({ children }) => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
+  const readCookie = (name) => {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : null;
+  };
+
+  const syncFromCookies = async () => {
+    const usertag = readCookie('usertag');
+    if (!usertag) {
+      setUser(null);
+      localStorage.removeItem('user');
+      return null;
+    }
+    try {
+      const profile = await apiFetch(`/user/profile/${usertag}`, { method: 'GET' });
+      const userObj = { usertag: profile.usertag, fullname: profile.fullname, pfp: profile.pfp };
+      setUser(userObj);
+      localStorage.setItem('user', JSON.stringify(userObj));
+      return userObj;
+    } catch (e) {
+      setUser(null);
+      localStorage.removeItem('user');
+      return null;
+    }
+  };
+  useEffect(() => {
+    if (!user) {
+      syncFromCookies().catch(() => {});
+    }
+  }, []);
+
   const login = async (credentials) => {
     try {
       const response = await apiFetch('/auth/login', {
@@ -17,11 +47,13 @@ export const AuthProvider = ({ children }) => {
         body: credentials, 
       });
 
-      const userData = response.user || response;
-      
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
+      // Prefer explicit user info from response; otherwise fall back to syncing from cookies
+      const userData = response.user || await syncFromCookies();
+      if (userData) {
+        const userObj = response.user || userData;
+        setUser(userObj);
+        localStorage.setItem('user', JSON.stringify(userObj));
+      }
       return response;
     } catch (error) {
       console.error('Bejelentkezési hiba:', error);
@@ -53,7 +85,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, syncFromCookies }}>
       {children}
     </AuthContext.Provider>
   );

@@ -78,7 +78,7 @@ export default async function setupDB() {
                 color: 'white',
                 doors: 5,
                 seats: 5,
-                vin: 'JTDBL40E799123456',
+                vin: 'JTDBL40E799123457',
                 maxspeedKMH: 180,
                 weightKG: 1300,
                 factoryExtras: 'air conditioning, power windows, Bluetooth, backup camera',
@@ -107,7 +107,7 @@ export default async function setupDB() {
                 color: 'black',
                 doors: 5,
                 seats: 5,
-                vin: '2HGFC2F69KH123456',
+                vin: '2HGFC2F69KH123457',
                 maxspeedKMH: 190,
                 weightKG: 1250,
                 factoryExtras: 'sunroof, leather seats, navigation system, premium audio',
@@ -136,7 +136,7 @@ export default async function setupDB() {
                 color: 'blue',
                 doors: 5,
                 seats: 5,
-                vin: 'WF0AXXGBGXG123456',
+                vin: 'WF0AXXGBGXG123457',
                 maxspeedKMH: 195,
                 weightKG: 1320,
                 factoryExtras: 'rear parking sensors, AUX input',
@@ -165,7 +165,7 @@ export default async function setupDB() {
                 color: 'silver',
                 doors: 4,
                 seats: 5,
-                vin: 'WBA3A9G50FN123456',
+                vin: 'WBA3A9G50FN123457',
                 maxspeedKMH: 240,
                 weightKG: 1450,
                 factoryExtras: 'M sport package, leather seats, navigation',
@@ -194,7 +194,7 @@ export default async function setupDB() {
                 color: 'black',
                 doors: 4,
                 seats: 5,
-                vin: 'WDDGF8AB4AR123456',
+                vin: 'WDDGF8AB4AR123457',
                 maxspeedKMH: 230,
                 weightKG: 1500,
                 factoryExtras: 'panoramic roof, AMG styling, ambient lighting',
@@ -223,7 +223,7 @@ export default async function setupDB() {
                 color: 'red',
                 doors: 5,
                 seats: 5,
-                vin: 'WVWZZZ1KZ3W123456',
+                vin: 'WVWZZZ1KZ3W123457',
                 maxspeedKMH: 200,
                 weightKG: 1280,
                 factoryExtras: 'cruise control, alloy wheels',
@@ -252,7 +252,7 @@ export default async function setupDB() {
                 color: 'grey',
                 doors: 5,
                 seats: 5,
-                vin: 'SJNFBAJ11U1234567',
+                vin: 'SJNFBAJ11U1234568',
                 maxspeedKMH: 200,
                 weightKG: 1400,
                 factoryExtras: 'roof rails, rear spoiler',
@@ -281,7 +281,7 @@ export default async function setupDB() {
                 color: 'green',
                 doors: 5,
                 seats: 5,
-                vin: 'JF1GPAA69F8234567',
+                vin: 'JF1GPAA69F8234568',
                 maxspeedKMH: 210,
                 weightKG: 1450,
                 factoryExtras: 'roof rails, heated mirrors',
@@ -298,6 +298,12 @@ export default async function setupDB() {
         ];
         const carids = [];
         for (const car of defaultCars) {
+            // If a car with this VIN already exists, reuse its id to make seeding idempotent
+            const [existing] = await pool.query('SELECT id FROM cars WHERE vin = ?', [car.vin]);
+            if (existing && existing.length > 0) {
+                carids.push(existing[0].id);
+                continue;
+            }
             const insertCarQuery = `
                 INSERT INTO cars (manufacturer, model, modelyear, odometerKM, efficiency, efficiencyunit,
                 enginecapacityCC, fueltype, emissionsGKM, transmission, bodytype, color, doors, seats,
@@ -315,7 +321,7 @@ export default async function setupDB() {
             startingpriceUSD: 8000 + idx * 2000,
             reservepriceUSD: null,
             starttime: new Date(),
-            endtime: new Date(Date.now() + idx * 1.5 * 24 * 60 * 60 * 1000), // 1.5, 3, 4.5... nap múlva jár le
+            endtime: new Date(Date.now() + (idx + 1) * 1.5 * 24 * 60 * 60 * 1000),
             status: 'active',
             winner: null
         }));

@@ -74,12 +74,29 @@ export default async function LoginController(req, res) {
 
     // #region HTTPOnly auth süti, nyelvnyelvek, sötét mód, valuta sütik beállítása keeplogin és bejelentkezett felhasználó alapján
     const maxage = keeplogin ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
-    const cookieBase = { maxAge: maxage, sameSite: 'lax', secure: configs.environment.isProduction };
+   let cookieBase = { maxAge: maxage, sameSite: 'lax', secure: configs.environment.isProduction };
+    try {
+        const serverDomain = configs.server.domain();
+        const url = new URL(serverDomain);
+        const host = url.hostname || null;
+        if (host) {
+
+            const topDomain = host.replace(/^www\./, '');
+            cookieBase.domain = '.' + topDomain;
+        }
+    } catch (e) {
+
+    }
+
+    if (configs.environment.isProduction) {
+        cookieBase.sameSite = 'none';
+        cookieBase.secure = true;
+    }
     res.cookie('auth', token, { ...cookieBase, httpOnly: true });
     res.cookie('usertag', matchedUser.usertag, cookieBase);
     res.cookie('language', settingsRows[0].language || 'en', cookieBase);
     res.cookie('darkmode', settingsRows[0].darkmode ? 'true' : 'false', cookieBase);
     res.cookie('currency', settingsRows[0].currency || 'USD', cookieBase);
-    return res.status(200).json({ message: lang === 'HU' ? 'Sikeres bejelentkezés.' : 'Login successful.' });
+    return res.status(200).json({ message: lang === 'HU' ? 'Sikeres bejelentkezés.' : 'Login successful.', user: { usertag: matchedUser.usertag } });
     // #endregion
 }
