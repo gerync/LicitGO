@@ -26,8 +26,7 @@ export default async function AddCarController(req, res) {
         // #endregion
         // #region Kép fájlnevek összeállítása (kiterjesztéssel)
         const images = req.validatedImages || [];
-        const imageFilenames = images.map((file) => file.filename || path.basename(file.path || '') || file.originalname || '');
-        const imagesJSON = JSON.stringify(imageFilenames);
+        const imagesJSON = JSON.stringify(images);
         // #endregion
         // #region Adatbázis beszúrás
         const query = `

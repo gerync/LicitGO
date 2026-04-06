@@ -4,13 +4,13 @@ DEFAULT COLLATE utf8_hungarian_ci;
 USE licitgo;
 
 CREATE TABLE IF NOT EXISTS users (
-    usertoken VARCHAR(512) PRIMARY KEY NOT NULL UNIQUE,
+    usertoken TEXT NOT NULL,
     usertag VARCHAR(32) NOT NULL UNIQUE,
     passwordhash VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    email TEXT NOT NULL,
     email_hash VARCHAR(64) NOT NULL UNIQUE,
-    fullname VARCHAR(255) NOT NULL,
-    mobile VARCHAR(255) NOT NULL UNIQUE,
+    fullname TEXT NOT NULL,
+    mobile TEXT NOT NULL,
     mobile_hash VARCHAR(64) NOT NULL UNIQUE,
     gender VARCHAR(10) NOT NULL,
     birthdate DATE NOT NULL,
@@ -18,21 +18,23 @@ CREATE TABLE IF NOT EXISTS users (
     createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     lastlogin DATETIME,
     publicContacts BOOLEAN DEFAULT TRUE,
+    PRIMARY KEY (usertoken(255)),
     INDEX idx_email_hash (email_hash),
     INDEX idx_mobile_hash (mobile_hash)
 );
+
 CREATE TABLE IF NOT EXISTS tfa (
-    usertoken VARCHAR(512) PRIMARY KEY NOT NULL UNIQUE,
+    usertoken TEXT NOT NULL,
     secret VARCHAR(255) NOT NULL,
     enabled BOOLEAN DEFAULT FALSE,
     backupcodes TEXT,
-    FOREIGN KEY (usertoken) REFERENCES users(usertoken) ON DELETE CASCADE
+    PRIMARY KEY (usertoken(255))
 );
 
 CREATE TABLE IF NOT EXISTS profpics (
-    usertoken VARCHAR(512) NOT NULL UNIQUE PRIMARY KEY,
+    usertoken TEXT NOT NULL,
     filename VARCHAR(255) NOT NULL,
-    FOREIGN KEY (usertoken) REFERENCES users(usertoken) ON DELETE CASCADE
+    PRIMARY KEY (usertoken(255))
 );
 
 CREATE TABLE IF NOT EXISTS cars (
@@ -57,13 +59,12 @@ CREATE TABLE IF NOT EXISTS cars (
     weightKG INT,
     factoryExtras TEXT,
     features TEXT,
-    ownertoken VARCHAR(512) NOT NULL,
+    ownertoken TEXT NOT NULL,
     images JSON,
     INDEX idx_manufacturer (manufacturer),
     INDEX idx_modelyear (modelyear),
     INDEX idx_fueltype (fueltype),
-    INDEX idx_bodytype (bodytype),
-    FOREIGN KEY (ownertoken) REFERENCES users(usertoken) ON DELETE CASCADE
+    INDEX idx_bodytype (bodytype)
 );
 
 CREATE TABLE IF NOT EXISTS auctions (
@@ -74,12 +75,11 @@ CREATE TABLE IF NOT EXISTS auctions (
     starttime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     endtime DATETIME NOT NULL,
     status VARCHAR(32) NOT NULL DEFAULT 'active',
-    winner VARCHAR(512),
+    winner TEXT,
     INDEX idx_starttime (starttime),
     INDEX idx_endtime (endtime),
     INDEX idx_status (status),
     FOREIGN KEY (carid) REFERENCES cars(id) ON DELETE CASCADE,
-    FOREIGN KEY (winner) REFERENCES users(usertoken) ON DELETE SET NULL,
     CONSTRAINT chk_auction_times CHECK (endtime > starttime),
     CONSTRAINT chk_reserve_price CHECK (reservepriceUSD IS NULL OR reservepriceUSD >= startingpriceUSD)
 );
@@ -87,34 +87,33 @@ CREATE TABLE IF NOT EXISTS auctions (
 CREATE TABLE IF NOT EXISTS bids (
     id INT AUTO_INCREMENT PRIMARY KEY,
     auctionid INT NOT NULL,
-    bidder VARCHAR(512) NOT NULL,
+    bidder TEXT NOT NULL,
     bidamountUSD DECIMAL(10, 2) NOT NULL,
     bidtime DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_auctionid (auctionid),
     INDEX idx_bidamount (bidamountUSD),
-    FOREIGN KEY (auctionid) REFERENCES auctions(id) ON DELETE CASCADE,
-    FOREIGN KEY (bidder) REFERENCES users(usertoken) ON DELETE CASCADE
+    FOREIGN KEY (auctionid) REFERENCES auctions(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS emailcodes (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usertoken VARCHAR(512) NOT NULL,
+    usertoken TEXT NOT NULL,
     code VARCHAR(10) NOT NULL,
     expiresat DATETIME NOT NULL,
     type ENUM('verification', 'password-reset', 'email-change', 'tfa-disable') NOT NULL,
-    newemail VARCHAR(512),
+    newemail TEXT,
     newemail_hash VARCHAR(64),
     used BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (usertoken) REFERENCES users(usertoken) ON DELETE CASCADE
+    INDEX idx_usertoken (usertoken(255))
 );
 
 CREATE TABLE IF NOT EXISTS settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usertoken VARCHAR(512) NOT NULL UNIQUE,
+    usertoken TEXT NOT NULL,
     darkmode BOOLEAN DEFAULT FALSE,
     language ENUM('EN', 'HU') DEFAULT 'EN' NOT NULL,
     currency ENUM('EUR', 'HUF', 'USD') DEFAULT 'EUR' NOT NULL,
-    FOREIGN KEY (usertoken) REFERENCES users(usertoken) ON DELETE CASCADE
+    UNIQUE KEY idx_usertoken (usertoken(255))
 );
 
 CREATE TABLE IF NOT EXISTS errorlogs (

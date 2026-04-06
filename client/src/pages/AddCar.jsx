@@ -16,16 +16,22 @@ export default function AddCar() {
   });
 
   const [images, setImages] = useState([]);
+  const [imageUrl, setImageUrl] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
-      setImages((prev) => [...prev, ...selectedFiles]);
+  const handleAddImageUrl = (e) => {
+    e.preventDefault();
+    if (!imageUrl.trim()) return;
+    try {
+      new URL(imageUrl);
+      setImages((prev) => [...prev, imageUrl.trim()]);
+      setImageUrl('');
+    } catch (_) {
+      toast.error('Kérlek érvényes URL-t adj meg!');
     }
   };
 
@@ -50,19 +56,15 @@ export default function AddCar() {
 
     setIsLoading(true);
     try {
-      const submitData = new FormData();
-
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== '' && formData[key] !== null) {
-          submitData.append(key, formData[key]);
+      const payload = { ...formData };
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === '' || payload[key] === null) {
+          delete payload[key];
         }
       });
+      payload.images = images;
 
-      images.forEach((image) => {
-        submitData.append('images', image);
-      });
-
-      const response = await api.post('/auction/addcar', submitData);
+      const response = await api.post('/auction/addcar', payload);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -196,20 +198,27 @@ export default function AddCar() {
         {/* Képek */}
         {currentStep === 4 && (
           <div className="space-y-6 animate-fadeIn">
-            <h2 className="text-xl font-bold text-content mb-4 border-b border-border pb-2">4. Képek feltöltése</h2>
+            <h2 className="text-xl font-bold text-content mb-4 border-b border-border pb-2">4. Képek hozzáadása</h2>
 
-            <div className="border-2 border-dashed border-border rounded-xl p-8 text-center bg-background hover:bg-border/20 transition-colors cursor-pointer relative">
-              <input type="file" multiple accept="image/*" onChange={handleImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-              <Upload className="w-12 h-12 text-primary mx-auto mb-4" />
-              <p className="text-content font-medium">Kattints ide vagy húzd be a képeket</p>
-              <p className="text-sm text-content-muted mt-1">PNG, JPG, JPEG (Max 5MB / kép)</p>
+            <div className="flex gap-2 mb-4 relative z-20">
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://pelda.hu/kep.jpg"
+                className="flex-grow bg-background border border-border rounded-lg p-2.5 text-content"
+                onKeyDown={(e) => e.key === 'Enter' && handleAddImageUrl(e)}
+              />
+              <button type="button" onClick={handleAddImageUrl} className="bg-primary text-white font-bold px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors">
+                Hozzáadás
+              </button>
             </div>
 
             {images.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
                 {images.map((img, idx) => (
                   <div key={idx} className="relative group rounded-lg overflow-hidden border border-border h-24">
-                    <img src={URL.createObjectURL(img)} alt="preview" className="w-full h-full object-cover" />
+                    <img src={img} alt="preview" className="w-full h-full object-cover" />
                     <button type="button" onClick={() => removeImage(idx)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <X className="w-4 h-4" />
                     </button>

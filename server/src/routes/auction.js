@@ -4,7 +4,7 @@ import RateLimit from 'express-rate-limit';
 // #endregion
 // #region "Köztes rétegek" és vezérlők importálása
 import AuthMiddleware from '../middlewares/auth/isLoggedIn.js';
-import { uploadMultipleCarImages } from '../utilities/ManageImages.js';
+
 
 import AddCarController from '../controllers/auction/Addcar.js';
 import AddCarMiddleware from '../middlewares/auction/Addcar.js';
@@ -55,7 +55,7 @@ const RL = {
     })
 };
 
-router.post('/addcar', [AuthMiddleware, RL.addCar, uploadMultipleCarImages, AddCarMiddleware], AddCarController);
+router.post('/addcar', [AuthMiddleware, RL.addCar, AddCarMiddleware], AddCarController);
 
 router.post('/addauction', [AuthMiddleware, RL.addAuction, AddauctionMiddleware], AddauctionController);
 

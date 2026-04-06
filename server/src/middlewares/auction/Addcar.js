@@ -150,40 +150,45 @@ export default function AddCarMiddleware(req, res, next) {
     if (factoryExtras && typeof factoryExtras !== 'string') {
         throw new Error([ lang === 'HU' ? 'Érvénytelen gyári extrák formátum.' : 'Invalid factory extras format.', 400 ]);
     }
-    if (ObjectLength(req.body, 14, 21) === 1) {
+    if (ObjectLength(req.body, 15, 22) === 1) {
         throw new Error([ lang === 'HU' ? 'Túl sok mező lett megadva.' : 'Too many fields provided.', 400 ]);
     }
-    if (ObjectLength(req.body, 14, 21) === -1) {
+    if (ObjectLength(req.body, 15, 22) === -1) {
         throw new Error([ lang === 'HU' ? 'Túl kevés mező lett megadva.' : 'Too few fields provided.', 400 ]);
     }
     //#endregion
 
-    //#region Képfájlok validálása
-    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+    //#region Képek validálása
+    const images = req.body.images;
+    if (!images || !Array.isArray(images) || images.length === 0) {
         throw new Error([
-            lang === 'HU' ? 'Legalább 5 kép szükséges.' : 'At least 5 images are required.',
+            lang === 'HU' ? 'Legalább 5 kép URL szükséges.' : 'At least 5 image URLs are required.',
             400
         ]);
     }
 
-    // Minimum 5 images required
-    if (req.files.length < 5) {
+    if (images.length < 5) {
         throw new Error([
-            lang === 'HU' ? `Legalább 5 kép szükséges. ${req.files.length} kép lett feltöltve.` : `At least 5 images are required. ${req.files.length} images were uploaded.`,
+            lang === 'HU' ? `Legalább 5 kép URL szükséges. ${images.length} lett megadva.` : `At least 5 image URLs are required. ${images.length} were provided.`,
             400
         ]);
     }
 
-    // Maximum 50 images allowed
-    if (req.files.length > 50) {
+    if (images.length > 50) {
         throw new Error([
-            lang === 'HU' ? 'Legfeljebb 50 kép feltölthető.' : 'Maximum 50 images allowed.',
+            lang === 'HU' ? 'Legfeljebb 50 kép URL adható meg.' : 'Maximum 50 image URLs allowed.',
             400
         ]);
     }
 
-    // Validate files are actually uploaded (multer should have already done this, but double-check)
-    req.validatedImages = req.files;
+    // Verify all are strings
+    for (let i = 0; i < images.length; i++) {
+        if (typeof images[i] !== 'string' || !images[i].trim()) {
+            throw new Error([lang === 'HU' ? 'Érvénytelen kép URL.' : 'Invalid image URL.', 400]);
+        }
+    }
+    
+    req.validatedImages = images;
     //#endregion
 
     //#region Normalizált értékek visszaírása a kérésebe
