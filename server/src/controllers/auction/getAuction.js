@@ -97,7 +97,9 @@ export default async function GetAuctionController(req, res) {
     // #region Válasz összeállítása
     const auctionDetails = {
         auctionId: row.auctionId,
-        carId: row.carid,
+        carId: row.carId,
+        title: row.title || `${row.manufacturer || ''} ${row.model || ''}`.trim() || null,
+        description: row.description || null,
         currentPrice: await convert(currentPrice, 'USD', currency),
         reserveMet: reserveMet,
         currency: currency,
@@ -132,9 +134,11 @@ export default async function GetAuctionController(req, res) {
                 usertag: row.usertag,
                 fullname: row.fullname
             },
-            images: images.map(img => `${Configs.server.domain()}/media/cars/${img}`)
+            images: images.filter(Boolean).map(img => (img && (img.startsWith('http://') || img.startsWith('https://')) ? img : `${Configs.server.domain()}/media/cars/${img}`))
         }
     };
+    console.log('getAuction -> auctionDetails keys:', Object.keys(auctionDetails));
+    console.log('getAuction -> auctionDetails.title:', auctionDetails.title);
     conn.release();
     return res.status(200).json({
         success: true,
