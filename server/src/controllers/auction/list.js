@@ -214,7 +214,11 @@ export default async function ListAuctionsController(req, res) {
                     fueltype: row.fueltype,
                     transmission: row.transmission,
                     bodytype: row.bodytype,
-                    mainImagepath: images[0] ? `${Configs.server.domain()}/media/cars/${images[0]}` : null
+                    mainImagepath: images[0]
+                        ? (images[0].startsWith('http://') || images[0].startsWith('https://')
+                            ? images[0]
+                            : `${Configs.server.domain()}/media/cars/${images[0]}`)
+                        : null
                 }
             });
         }
