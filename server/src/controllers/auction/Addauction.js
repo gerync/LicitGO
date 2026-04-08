@@ -9,12 +9,14 @@ export default async function AddAuctionController(req, res) {
         const lang = req.lang;
         const currency = req.currency;
         let reservePriceUSD = reservePrice;
+        let startingPriceUSD = startingBid;
+        startingPriceUSD = await convert(startingBid, currency, 'USD');
         reservePriceUSD = await convert(reservePrice, currency, 'USD');
         if (carRows.length === 0) {
             conn.release();
             throw new Error([ lang === 'HU' ? 'A megadott \'carid\'-hoz tartozó autó nem található.' : 'Car not found for the given \'carid\'.', 404 ]);
         }
-        if (carRows[0].ownertoken !== req.user) {
+        if (carRows[0].ownertoken !== req.usertoken) {
             conn.release();
             throw new Error([ lang === 'HU' ? 'Nincs jogosultsága az aukció létrehozásához ehhez az autóhoz.' : 'You do not have permission to create an auction for this car.', 403 ]);
         }
@@ -23,8 +25,8 @@ export default async function AddAuctionController(req, res) {
             conn.release();
             throw new Error([ lang === 'HU' ? 'Ehhez az autóhoz már létezik egy aktív aukció.' : 'An active auction already exists for this car.', 409 ]);
         }
-        const insertQuery = `INSERT INTO auctions (carid, startingBid, reservepriceUSD, starttime, endtime, createdAt) VALUES (?, ?, ?, ?, ?, NOW())`;
-        const insertValues = [carid, startingBid, reservePriceUSD, starttime, endtime];
+        const insertQuery = `INSERT INTO auctions (carid, startingpriceUSD, reservepriceUSD, starttime, endtime) VALUES (?, ?, ?, ?, ?)`;
+        const insertValues = [carid, startingPriceUSD, reservePriceUSD, starttime, endtime];
         const [result] = await conn.query(insertQuery, insertValues);
         conn.release();
         return res.status(201).json({ success: true, message: lang === 'HU' ? 'Aukció sikeresen létrehozva.' : 'Auction created successfully.', auctionId: result.insertId });

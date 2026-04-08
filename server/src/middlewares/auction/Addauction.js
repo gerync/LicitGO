@@ -1,6 +1,6 @@
 import ObjectLength from '../../utilities/ObjectLength.js';
 export default function AddAuctionMiddleware(req, res, next) {
-    const [ carid, startingBid, reservePrice, starttime, endtime ] = req.body;
+    const { carid, startingBid, reservePrice, starttime, endtime } = req.body;
     const lang = req.lang;
     if (ObjectLength(req.body, 5) == -1) {
         throw new Error([ lang === 'HU' ? 'Hiányzó mezők az aukció létrehozásához.' : 'Missing fields for creating the auction.', 400 ]);
