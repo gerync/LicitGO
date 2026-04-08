@@ -22,6 +22,7 @@ import setup from './database/SetupDB.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/user.js';
 import auctionRoutes from './routes/auction.js';
+import carRoutes from './routes/car.js';
 import startupEmail from './email/startup.js';
 import Configs from './configs/Configs.js';
 // #endregion
@@ -130,6 +131,8 @@ app.get('/docs.json', (req, res) => {
 app.use('/auth', authRoutes);
 
 app.use('/auction', auctionRoutes);
+
+app.use('/cars', carRoutes);
 
 app.use('/user', userRoutes);
 

@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '../api/config';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { api, apiFetch } from '../api/config';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Car, DollarSign, Calendar, Gavel, Loader2, ArrowRight } from 'lucide-react';
 
@@ -22,6 +23,33 @@ export default function AddAuction() {
     starttime: '',
     endtime: ''
   });
+
+  const { user } = useAuth();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const prefillCarId = params.get('carId');
+  const [myCars, setMyCars] = useState([]);
+
+  useEffect(() => {
+    if (prefillCarId) {
+      setFormData(f => ({ ...f, carid: prefillCarId }));
+    }
+  }, [prefillCarId]);
+
+  useEffect(() => {
+    const fetchMyCars = async () => {
+      try {
+        const usertag = user?.usertag;
+        if (!usertag) return;
+        const profile = await apiFetch(`/user/profile/${usertag}`, { method: 'GET' });
+        const cars = profile.cars || [];
+        setMyCars(cars);
+      } catch (e) {
+        setMyCars(mockMyCars);
+      }
+    };
+    fetchMyCars();
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -105,8 +133,8 @@ export default function AddAuction() {
               className="w-full bg-background border border-border rounded-lg p-3 text-content focus:ring-primary focus:border-primary"
             >
               <option value="">Válassz a garázsodból...</option>
-              {mockMyCars.map(car => (
-                <option key={car.id} value={car.id}>{car.name}</option>
+              {(myCars.length > 0 ? myCars : mockMyCars).map(car => (
+                <option key={car.id} value={car.id}>{car.manufacturer ? `${car.manufacturer} ${car.model} (${car.modelyear || ''})` : car.name}</option>
               ))}
             </select>
             <p className="text-xs text-content-muted mt-2">Csak a már feltöltött, de még nem aukciózott autóid jelennek meg itt.</p>

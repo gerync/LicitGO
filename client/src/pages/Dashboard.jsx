@@ -4,6 +4,7 @@ import { apiFetch } from '../api/config';
 import { Loader2, PlusCircle, Car, Settings as SettingsIcon, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import AuctionCard from '../components/AuctionCard';
+import MyCarCard from '../components/MyCarCard';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -109,9 +110,16 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {myAuctions.map((auction) => (
-              <AuctionCard key={auction.id || auction._id} auction={auction} />
-            ))}
+            {myAuctions.map((item, idx) => {
+              // If the item is an auction-shaped object, render AuctionCard
+              if (item && (item.auctionId !== undefined && item.auctionId !== null)) {
+                return <AuctionCard key={item.auctionId || item._id || idx} auction={item} />;
+              }
+
+              // Otherwise treat it as a car (either {car: {...}} or a plain car object)
+              const carObj = item?.car ? item.car : item;
+              return <MyCarCard key={carObj?.id || carObj?.carId || idx} car={carObj} />;
+            })}
           </div>
         )}
       </div>

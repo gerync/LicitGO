@@ -18,6 +18,7 @@ import Auctions from "./pages/Auctions"
 import AddCar from "./pages/AddCar"
 import AddAuction from "./pages/AddAuction"
 import AuctionDetail from "./pages/AuctionDetail"
+import CarDetail from "./pages/CarDetail"
 import Settings from "./pages/Settings"
 import NotFound from "./pages/NotFound"
 
@@ -47,6 +48,7 @@ export default function App() {
               <Route path="/" element={<Landing />} />
               <Route path="/auctions" element={<Auctions />} />
               <Route path="/auctions/:auctionId" element={<AuctionDetail />} />
+              <Route path="/cars/:carId" element={<CarDetail />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

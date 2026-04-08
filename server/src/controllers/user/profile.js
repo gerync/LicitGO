@@ -58,6 +58,54 @@ export async function getProfileController(req, res) {
         resJson.pfp = pfp;
     }
     // #endregion
+    // #region Saját autók lekérése (max 50, legfrissebb elöl)
+    try {
+        const carsQuery = `SELECT id, manufacturer, model, modelyear, odometerKM, efficiency, efficiencyunit, images FROM cars WHERE ownertoken = ? ORDER BY id DESC LIMIT 50`;
+        const [carsRows] = await conn.query(carsQuery, [userData.usertoken]);
+
+        const cars = carsRows.map(row => {
+            let images = [];
+            try { images = row.images ? JSON.parse(row.images) : []; } catch (e) { images = []; }
+            return {
+                id: row.id,
+                manufacturer: row.manufacturer,
+                model: row.model,
+                modelyear: row.modelyear,
+                odometerKM: row.odometerKM,
+                efficiency: row.efficiency,
+                efficiencyunit: row.efficiencyunit,
+                mainImagepath: images[0] ? (images[0].startsWith('http://') || images[0].startsWith('https://') ? images[0] : `${Configs.server.domain()}/media/cars/${images[0]}`) : null
+            };
+        });
+
+        // Provide both `cars` and a fallback `auctions` shaped array so frontend can display cards
+        resJson.cars = cars;
+        resJson.auctions = cars.map(c => ({
+            auctionId: null,
+            carId: c.id,
+            currentPrice: null,
+            reservePriceUSD: null,
+            reserveMet: false,
+            bidCount: 0,
+            starttime: null,
+            endtime: null,
+            status: lang === 'HU' ? 'Nincs aukció' : 'no-auction',
+            timeRemaining: 0,
+            car: {
+                manufacturer: c.manufacturer,
+                model: c.model,
+                modelyear: c.modelyear,
+                odometerKM: c.odometerKM,
+                efficiency: c.efficiency,
+                efficiencyunit: c.efficiencyunit,
+                mainImagepath: c.mainImagepath
+            }
+        }));
+    } catch (err) {
+        // If fetching cars fails, continue without cars
+        console.error('Failed to fetch user cars for profile:', err);
+    }
+
     conn.release();
     return res.status(200).json(resJson);
 }
