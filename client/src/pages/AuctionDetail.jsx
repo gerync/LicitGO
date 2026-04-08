@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiFetch } from '../api/config';
+import { useAuth } from '../context/AuthContext';
 import { Loader2, ArrowLeft, Clock, Tag, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function AuctionDetail() {
@@ -41,6 +42,8 @@ export default function AuctionDetail() {
 
     fetchAuctionDetails();
   }, [auctionId]);
+
+  const { user } = useAuth();
 
   // reset image index when images change on the loaded auction
   useEffect(() => {
@@ -103,6 +106,7 @@ export default function AuctionDetail() {
 
     const endDate = new Date(auction.endtime || auction.endTime || auction.endDate);
     const isActive = endDate > new Date();
+    const isOwner = user && auction.car && auction.car.owner && user.usertag && auction.car.owner.usertag === user.usertag;
 
     // Safe price formatting
     const priceNumber = Number(typeof price === 'string' ? price.replace(/[^0-9.-]+/g, '') : price) || 0;
@@ -210,23 +214,29 @@ export default function AuctionDetail() {
               </div>
 
               {isActive ? (
-                <form onSubmit={handleBidSubmit}>
-                  <label className="block text-sm font-medium text-content mb-2">Ajánlatod (Ft)</label>
-                  <div className="flex gap-4">
-                    <input
-                      type="number"
-                      min={Number(price) + 1000}
-                      required
-                      value={bidAmount}
-                      onChange={(e) => setBidAmount(e.target.value)}
-                      placeholder={`Min. ${(Number(price) + 1000).toLocaleString('hu-HU')}`}
-                      className="flex-grow bg-background border border-border rounded-lg p-3 text-content focus:ring-primary focus:border-primary transition-colors"
-                    />
-                    <button type="submit" className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors shadow-sm">
-                      Licitálok
-                    </button>
+                isOwner ? (
+                  <div className="text-center py-4 text-yellow-700 font-bold bg-yellow-100 rounded-lg">
+                    Nem licitálhatsz a saját aukcióidra.
                   </div>
-                </form>
+                ) : (
+                  <form onSubmit={handleBidSubmit}>
+                    <label className="block text-sm font-medium text-content mb-2">Ajánlatod (Ft)</label>
+                    <div className="flex gap-4">
+                      <input
+                        type="number"
+                        min={Number(price) + 1000}
+                        required
+                        value={bidAmount}
+                        onChange={(e) => setBidAmount(e.target.value)}
+                        placeholder={`Min. ${(Number(price) + 1000).toLocaleString('hu-HU')}`}
+                        className="flex-grow bg-background border border-border rounded-lg p-3 text-content focus:ring-primary focus:border-primary transition-colors"
+                      />
+                      <button type="submit" className="bg-primary text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-hover transition-colors shadow-sm">
+                        Licitálok
+                      </button>
+                    </div>
+                  </form>
+                )
               ) : (
                 <div className="text-center py-4 text-red-500 font-bold bg-red-500/10 rounded-lg">
                   Erre az autóra már nem lehet licitálni.
